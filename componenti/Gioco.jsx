@@ -1,50 +1,72 @@
 "use client";
 
-import { useState } from "react";
+import { useMemo, useState } from "react";
+import { costruisciSlot, MODULO_DEFAULT } from "@/logica/formazione";
 import SchermataHome from "@/componenti/SchermataHome";
+import SchermataSetup, { COLORI } from "@/componenti/SchermataSetup";
 import SchermataDraft from "@/componenti/SchermataDraft";
 import SchermataRosa from "@/componenti/SchermataRosa";
 import SchermataStagione from "@/componenti/SchermataStagione";
 
-// Componente radice: gestisce la fase di gioco, il nome squadra, la rosa e
-// l'allenatore. Fasi: "home" → "draft" → "rosa" → "stagione".
+// Componente radice: gestisce fase, impostazioni squadra (nome/modulo/colore),
+// rosa, allenatore e capitano.
+// Fasi: "home" → "setup" → "draft" → "rosa" → "stagione".
 export default function Gioco() {
   const [fase, setFase] = useState("home");
+  const [nomeSquadra, setNomeSquadra] = useState("");
+  const [modulo, setModulo] = useState(MODULO_DEFAULT);
+  const [colore, setColore] = useState(COLORI[0]);
+
   const [rosa, setRosa] = useState([]);
   const [allenatore, setAllenatore] = useState(null);
-  const [nomeSquadra, setNomeSquadra] = useState("");
+  const [capitano, setCapitano] = useState(null);
 
-  function completaDraft({ rosa: rosaFinale, allenatore: all }) {
+  // Slot del draft generati dal modulo scelto.
+  const slot = useMemo(() => costruisciSlot(modulo), [modulo]);
+
+  function completaDraft({ rosa: rosaFinale, allenatore: all, capitano: cap }) {
     setRosa(rosaFinale);
     setAllenatore(all);
+    setCapitano(cap);
     setFase("rosa");
   }
 
   function ricomincia() {
     setRosa([]);
     setAllenatore(null);
+    setCapitano(null);
     setFase("home");
   }
 
-  // Nome effettivo usato nel campionato (fallback se lasciato vuoto).
   const nomeEffettivo = nomeSquadra.trim() || "La tua squadra";
 
   return (
     <main className={`app fase-${fase}`}>
-      {fase === "home" && (
-        <SchermataHome
+      {fase === "home" && <SchermataHome onAvvia={() => setFase("setup")} />}
+
+      {fase === "setup" && (
+        <SchermataSetup
           nome={nomeSquadra}
           onNome={setNomeSquadra}
-          onInizia={() => setFase("draft")}
+          modulo={modulo}
+          onModulo={setModulo}
+          colore={colore}
+          onColore={setColore}
+          onConferma={() => setFase("draft")}
+          onIndietro={() => setFase("home")}
         />
       )}
 
-      {fase === "draft" && <SchermataDraft onCompletato={completaDraft} />}
+      {fase === "draft" && (
+        <SchermataDraft slot={slot} onCompletato={completaDraft} />
+      )}
 
       {fase === "rosa" && (
         <SchermataRosa
           rosa={rosa}
           allenatore={allenatore}
+          capitano={capitano}
+          modulo={modulo}
           onSimula={() => setFase("stagione")}
         />
       )}
@@ -53,7 +75,9 @@ export default function Gioco() {
         <SchermataStagione
           rosa={rosa}
           allenatore={allenatore}
+          capitano={capitano}
           nomeSquadra={nomeEffettivo}
+          colore={colore}
           onRicomincia={ricomincia}
         />
       )}

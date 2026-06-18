@@ -14,14 +14,18 @@ un fuoriclasse o una giovane promessa?
 
 ## 🎮 Come si gioca (MVP / v0)
 
-1. **Draft** — Per ognuno dei 18 slot (11 titolari in 4-3-3 + 7 in panchina)
-   viene estratta una squadra storica a caso. Scegli un giocatore del ruolo
-   richiesto **a overall nascosto**.
-2. **Reveal** — A rosa completata scopri i valori reali e la forza della
-   squadra (media degli 11 titolari).
-3. **Stagione** — Simulazione di un campionato a 20 squadre (andata e ritorno,
-   38 giornate). Le 19 avversarie sono squadre-stagione storiche estratte a
-   caso, senza duplicati. Punta allo Scudetto.
+1. **Crea la squadra** — Scegli nome, **modulo** (4-3-3, 4-4-2, 3-5-2, 3-4-3,
+   5-3-2, 4-2-3-1) e **colore**.
+2. **Draft** — Per ogni slot della formazione (11 titolari + 7 panchina) viene
+   estratta una squadra storica a caso: scegli un giocatore **a overall
+   nascosto** (candidati in ordine alfabetico, niente doppioni). Poi peschi
+   l'**allenatore** e nomini il **capitano**.
+3. **Reveal** — A rosa completata scopri gli overall, la formazione sul campo e
+   la forza della squadra (11 titolari + allenatore).
+4. **Stagione** — Campionato a 20 squadre (calendario di andata e ritorno, 38
+   giornate). Le 19 avversarie sono squadre-stagione storiche senza duplicati.
+   A fine stagione: classifica, formazione, statistiche e **grafico
+   dell'andamento** per giornata. Punta allo Scudetto.
 
 Nessun login: si gioca subito.
 

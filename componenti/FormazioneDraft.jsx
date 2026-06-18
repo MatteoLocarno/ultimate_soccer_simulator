@@ -1,23 +1,7 @@
-// Formazione che si compone durante il draft: mostra i 18 slot (11 in campo +
-// 7 in panchina) e l'allenatore. Gli slot già scelti mostrano il COGNOME (mai
-// l'overall, che resta nascosto fino al reveal). Lo slot in corso pulsa.
-
-import { SLOT } from "@/logica/formazione";
-
-// Posizioni in campo dei titolari (4-3-3), allineate agli indici 0..10 di SLOT.
-const POS = [
-  { x: 50, y: 88 }, // 0  P
-  { x: 16, y: 69 }, // 1  D
-  { x: 39, y: 71 }, // 2  D
-  { x: 61, y: 71 }, // 3  D
-  { x: 84, y: 69 }, // 4  D
-  { x: 27, y: 48 }, // 5  C
-  { x: 50, y: 50 }, // 6  C
-  { x: 73, y: 48 }, // 7  C
-  { x: 28, y: 22 }, // 8  A
-  { x: 50, y: 19 }, // 9  A
-  { x: 72, y: 22 }, // 10 A
-];
+// Formazione che si compone durante il draft: mostra gli 11 titolari (nelle
+// posizioni del modulo scelto) + i 7 panchinari + l'allenatore. Gli slot già
+// scelti mostrano il COGNOME (mai l'overall, nascosto fino al reveal). Lo slot
+// in corso pulsa.
 
 function stato(indice, pick, slotCorrente) {
   if (pick) return "pieno";
@@ -26,26 +10,29 @@ function stato(indice, pick, slotCorrente) {
 }
 
 export default function FormazioneDraft({
+  slot,
   picks,
   slotCorrente,
   allenatore,
   faseAllenatore,
 }) {
   const cognome = (p) => p.giocatore.cognome || p.giocatore.nome;
+  const titolari = slot.filter((s) => s.tipo === "titolare");
+  const panchina = slot.filter((s) => s.tipo === "panchina");
 
   return (
     <div className="formazione-draft">
       <div className="campo campo-costruzione">
-        {POS.map((pos, i) => {
-          const pick = picks[i];
-          const st = stato(i, pick, slotCorrente);
+        {titolari.map((s) => {
+          const pick = picks[s.indice];
+          const st = stato(s.indice, pick, slotCorrente);
           return (
             <div
-              key={i}
+              key={s.indice}
               className={`slot-pos slot-${st}`}
-              style={{ left: `${pos.x}%`, top: `${pos.y}%` }}
+              style={{ left: `${s.x}%`, top: `${s.y}%` }}
             >
-              <span className="slot-disc">{SLOT[i].ruolo}</span>
+              <span className="slot-disc">{s.ruolo}</span>
               {pick && <span className="slot-lbl">{cognome(pick)}</span>}
             </div>
           );
@@ -56,13 +43,12 @@ export default function FormazioneDraft({
         <div className="rd-fila">
           <span className="rd-tit">Panchina</span>
           <div className="rd-slots">
-            {SLOT.slice(11).map((slot, k) => {
-              const i = 11 + k;
-              const pick = picks[i];
-              const st = stato(i, pick, slotCorrente);
+            {panchina.map((s) => {
+              const pick = picks[s.indice];
+              const st = stato(s.indice, pick, slotCorrente);
               return (
-                <div key={i} className={`rd-chip slot-${st}`}>
-                  <span className="slot-disc">{slot.ruolo}</span>
+                <div key={s.indice} className={`rd-chip slot-${st}`}>
+                  <span className="slot-disc">{s.ruolo}</span>
                   {pick && <span className="rd-nome">{cognome(pick)}</span>}
                 </div>
               );
@@ -79,9 +65,7 @@ export default function FormazioneDraft({
               }`}
             >
               <span className="slot-disc">All</span>
-              {allenatore && (
-                <span className="rd-nome">{allenatore.cognome}</span>
-              )}
+              {allenatore && <span className="rd-nome">{allenatore.cognome}</span>}
             </div>
           </div>
         </div>

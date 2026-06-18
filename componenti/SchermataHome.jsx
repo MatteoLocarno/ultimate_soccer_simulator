@@ -1,7 +1,7 @@
 import Stemma from "@/componenti/Stemma";
 
-// Schermata iniziale: stemma + brand + nome squadra + regole + avvio del draft.
-export default function SchermataHome({ nome, onNome, onInizia }) {
+// Schermata iniziale: stemma + brand + regole rapide. La CTA porta al setup.
+export default function SchermataHome({ onAvvia }) {
   return (
     <div className="home">
       <header className="brand">
@@ -25,8 +25,9 @@ export default function SchermataHome({ nome, onNome, onInizia }) {
         <div className="regola">
           <span className="num">2</span>
           <p>
-            <b>Componi la rosa.</b> 11 titolari (4-3-3) + 7 in panchina. Solo
-            alla fine scoprirai i valori reali dei tuoi acquisti.
+            <b>Componi la rosa.</b> Scegli modulo e colori, poi 11 titolari + 7
+            in panchina, allenatore e capitano. Gli overall si svelano alla
+            fine.
           </p>
         </div>
         <div className="regola">
@@ -38,21 +39,8 @@ export default function SchermataHome({ nome, onNome, onInizia }) {
         </div>
       </div>
 
-      <div className="campo-nome">
-        <label htmlFor="nome-squadra">Nome della tua squadra</label>
-        <input
-          id="nome-squadra"
-          type="text"
-          value={nome}
-          onChange={(e) => onNome(e.target.value)}
-          placeholder="La tua squadra"
-          maxLength={24}
-          autoComplete="off"
-        />
-      </div>
-
-      <button className="btn" onClick={onInizia}>
-        Inizia il Draft
+      <button className="btn" onClick={onAvvia}>
+        Crea la tua squadra
       </button>
     </div>
   );

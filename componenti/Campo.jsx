@@ -1,5 +1,5 @@
-// Campo da gioco con la formazione 4-3-3: i titolari sono disposti come
-// gettoni (overall + cognome) sul terreno, in stile lavagna tattica vintage.
+// Campo da gioco: i titolari sono disposti nelle posizioni del modulo scelto
+// (lette da pick.slot.x/y), con overall e, sul capitano, la fascia "C".
 
 function classeOvr(overall) {
   if (overall >= 88) return "tok-ovr top";
@@ -7,37 +7,30 @@ function classeOvr(overall) {
   return "tok-ovr";
 }
 
-function Gettone({ p, ritardo }) {
-  const g = p.giocatore;
+export default function Campo({ titolari, mini = false, capitanoId = null }) {
   return (
-    <div className="token" style={{ animationDelay: `${ritardo}ms` }}>
-      <div className={classeOvr(g.overall)}>{g.overall}</div>
-      <div className="tok-nome">{g.cognome || g.nome}</div>
-    </div>
-  );
-}
-
-export default function Campo({ titolari, mini = false }) {
-  const perRuolo = (r) => titolari.filter((p) => p.slot.ruolo === r);
-
-  // Dall'alto (attacco) verso il basso (porta).
-  const file = [
-    { y: "13%", g: perRuolo("A") },
-    { y: "40%", g: perRuolo("C") },
-    { y: "67%", g: perRuolo("D") },
-    { y: "89%", g: perRuolo("P") },
-  ];
-
-  let indice = 0;
-  return (
-    <div className={`campo${mini ? " campo-mini" : ""}`}>
-      {file.map((fila, ri) => (
-        <div className="fila" style={{ top: fila.y }} key={ri}>
-          {fila.g.map((p) => (
-            <Gettone key={p.giocatore._id} p={p} ritardo={indice++ * 70} />
-          ))}
-        </div>
-      ))}
+    <div className={`campo campo-schieramento${mini ? " campo-mini" : ""}`}>
+      {titolari.map((p, i) => {
+        const g = p.giocatore;
+        const capitano = g._id === capitanoId;
+        return (
+          <div
+            key={g._id}
+            className="token"
+            style={{
+              left: `${p.slot.x}%`,
+              top: `${p.slot.y}%`,
+              animationDelay: `${i * 55}ms`,
+            }}
+          >
+            <div className={classeOvr(g.overall)}>
+              {g.overall}
+              {capitano && <span className="fascia">C</span>}
+            </div>
+            <div className="tok-nome">{g.cognome || g.nome}</div>
+          </div>
+        );
+      })}
     </div>
   );
 }

@@ -7,6 +7,7 @@ import {
 } from "@/logica/simulazione";
 import Stemma from "@/componenti/Stemma";
 import Campo from "@/componenti/Campo";
+import AndamentoChart from "@/componenti/AndamentoChart";
 
 // Messaggio finale in base alla posizione in classifica.
 function verdetto(posizione) {
@@ -44,12 +45,14 @@ function estremi(partiteUtente) {
 export default function SchermataStagione({
   rosa,
   allenatore,
+  capitano,
   nomeSquadra,
+  colore,
   onRicomincia,
 }) {
   // Simula una sola volta, all'avvio della schermata.
-  const [{ classifica, partiteUtente }] = useState(() => {
-    const campionato = costruisciCampionato(rosa, nomeSquadra, allenatore);
+  const [{ classifica, partiteUtente, andamentoUtente }] = useState(() => {
+    const campionato = costruisciCampionato(rosa, nomeSquadra, allenatore, colore);
     return simulaStagione(campionato);
   });
 
@@ -58,6 +61,10 @@ export default function SchermataStagione({
   const v = verdetto(posizione);
   const { migliore, peggiore } = estremi(partiteUtente);
   const titolari = rosa.filter((p) => p.slot.tipo === "titolare");
+  const capitanoPick = titolari.find((p) => p.giocatore._id === capitano);
+  const capitanoNome = capitanoPick
+    ? `${capitanoPick.giocatore.nome} ${capitanoPick.giocatore.cognome}`
+    : null;
 
   return (
     <div className="stagione">
@@ -122,13 +129,19 @@ export default function SchermataStagione({
         <aside className="col-lato">
           <section className="card">
             <h2 className="sezione-titolo">La tua formazione</h2>
-            <Campo titolari={titolari} mini />
+            <Campo titolari={titolari} mini capitanoId={capitano} />
             {allenatore && (
               <div className="all-caption">
                 <span className="ac-l">Allenatore</span>
                 <span className="ac-v">
                   {allenatore.nome} {allenatore.cognome}
                 </span>
+              </div>
+            )}
+            {capitanoNome && (
+              <div className="all-caption">
+                <span className="ac-l">Capitano</span>
+                <span className="ac-v">{capitanoNome}</span>
               </div>
             )}
           </section>
@@ -177,6 +190,11 @@ export default function SchermataStagione({
             </div>
           ))}
         </div>
+      </section>
+
+      <section className="card">
+        <h2 className="sezione-titolo">Andamento in classifica</h2>
+        <AndamentoChart andamento={andamentoUtente} nSquadre={classifica.length} />
       </section>
 
       <p className="footer-note">

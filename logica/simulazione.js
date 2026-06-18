@@ -38,14 +38,15 @@ export function forzaUtente(rosa, allenatore) {
 export function costruisciCampionato(
   rosaUtente,
   nomeUtente = "La tua squadra",
-  allenatore = null
+  allenatore = null,
+  colore = "#3f6b3a"
 ) {
   const tua = {
     id: "__utente",
     nome: nomeUtente,
     squadra: nomeUtente,
     anno: "",
-    colore: "#3f6b3a",
+    colore: colore,
     forza: forzaUtente(rosaUtente, allenatore),
     utente: true,
   };
@@ -135,26 +136,63 @@ function registra(rigaCasa, rigaOspite, golCasa, golOspite) {
   }
 }
 
-// Simula l'intera stagione e ritorna classifica ordinata + partite dell'utente.
+// Criterio di ordinamento della classifica: punti, poi diff. reti, poi gol fatti.
+function ordinaClassifica(a, b) {
+  if (b.punti !== a.punti) return b.punti - a.punti;
+  const drA = a.gf - a.gs;
+  const drB = b.gf - b.gs;
+  if (drB !== drA) return drB - drA;
+  return b.gf - a.gf;
+}
+
+// Calendario di sola andata (metodo del cerchio): n-1 giornate, n/2 partite
+// ciascuna. La squadra in indice 0 resta fissa, le altre ruotano.
+function calendario(n) {
+  const idx = [...Array(n).keys()];
+  const giornate = [];
+  for (let r = 0; r < n - 1; r++) {
+    const giornata = [];
+    for (let i = 0; i < n / 2; i++) {
+      const a = idx[i];
+      const b = idx[n - 1 - i];
+      // alterna casa/trasferta per equilibrare il fattore campo
+      giornata.push(i % 2 === 0 ? [a, b] : [b, a]);
+    }
+    giornate.push(giornata);
+    idx.splice(1, 0, idx.pop()); // ruota tenendo fisso idx[0]
+  }
+  return giornate;
+}
+
+// Simula l'intera stagione giornata per giornata e ritorna:
+//  - classifica finale ordinata
+//  - le partite dell'utente
+//  - l'andamento dell'utente (posizione e punti dopo ogni giornata)
 export function simulaStagione(squadre) {
+  const n = squadre.length;
   const righe = {};
   squadre.forEach((s) => {
     righe[s.id] = rigaVuota(s);
   });
 
   const partiteUtente = [];
+  const andamentoUtente = [];
 
-  // Andata e ritorno: ogni coppia si affronta due volte (casa/trasferta).
-  for (let i = 0; i < squadre.length; i++) {
-    for (let j = 0; j < squadre.length; j++) {
-      if (i === j) continue;
-      const casa = squadre[i];
-      const ospite = squadre[j];
+  // Andata + ritorno (38 giornate per 20 squadre).
+  const andata = calendario(n);
+  const ritorno = andata.map((g) => g.map(([h, a]) => [a, h]));
+  const stagione = [...andata, ...ritorno];
+
+  stagione.forEach((giornata, gi) => {
+    for (const [hi, ai] of giornata) {
+      const casa = squadre[hi];
+      const ospite = squadre[ai];
       const { golCasa, golOspite } = simulaPartita(casa, ospite);
       registra(righe[casa.id], righe[ospite.id], golCasa, golOspite);
 
       if (casa.utente || ospite.utente) {
         partiteUtente.push({
+          giornata: gi + 1,
           casa: casa.nome,
           ospite: ospite.nome,
           golCasa,
@@ -163,15 +201,17 @@ export function simulaStagione(squadre) {
         });
       }
     }
-  }
 
-  const classifica = Object.values(righe).sort((a, b) => {
-    if (b.punti !== a.punti) return b.punti - a.punti;
-    const drA = a.gf - a.gs;
-    const drB = b.gf - b.gs;
-    if (drB !== drA) return drB - drA;
-    return b.gf - a.gf;
+    // posizione e punti dell'utente al termine della giornata
+    const ordinata = Object.values(righe).sort(ordinaClassifica);
+    const posizione = ordinata.findIndex((r) => r.utente) + 1;
+    andamentoUtente.push({
+      g: gi + 1,
+      pos: posizione,
+      punti: righe["__utente"].punti,
+    });
   });
 
-  return { classifica, partiteUtente };
+  const classifica = Object.values(righe).sort(ordinaClassifica);
+  return { classifica, partiteUtente, andamentoUtente };
 }

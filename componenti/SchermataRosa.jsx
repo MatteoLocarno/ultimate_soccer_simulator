@@ -12,7 +12,13 @@ function classeOvr(overall) {
 
 // Schermata di riepilogo: rivela gli overall, mostra il campo, l'allenatore e
 // la forza complessiva.
-export default function SchermataRosa({ rosa, allenatore, onSimula }) {
+export default function SchermataRosa({
+  rosa,
+  allenatore,
+  capitano,
+  modulo,
+  onSimula,
+}) {
   const forza = Math.round(forzaUtente(rosa, allenatore) * 10) / 10;
 
   const titolari = rosa.filter((p) => p.slot.tipo === "titolare");
@@ -54,7 +60,10 @@ export default function SchermataRosa({ rosa, allenatore, onSimula }) {
         </div>
       )}
 
-      <Campo titolari={titolari} />
+      <h3 className="reparto-modulo">
+        Formazione <span>{modulo?.nome}</span>
+      </h3>
+      <Campo titolari={titolari} capitanoId={capitano} />
 
       <section className="reparto reparto-panchina">
         <h3>Panchina</h3>
