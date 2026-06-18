@@ -1,8 +1,11 @@
-# ⚽ Leggende di Serie A — Draft Storico
+# 🛡️ Dinastia Scudetto — Draft Storico di Serie A
 
-Gioco manageriale calcistico **casual** per web/mobile. Costruisci la tua
-squadra pescando i campioni della storia della Serie A — **senza vedere i loro
-overall** — e prova a vincere il campionato contro 19 squadre leggendarie.
+Gioco manageriale calcistico **casual** per web/mobile, in stile vintage.
+Costruisci la tua squadra pescando i campioni della storia della Serie A —
+**senza vedere i loro overall** — e prova a vincere lo Scudetto contro 19
+squadre leggendarie.
+
+🌐 Online: https://dinastiascudetto.netlify.app/
 
 Conta solo la tua conoscenza calcistica: sai se Del Piero nel 1994-95 era già
 un fuoriclasse o una giovane promessa?
