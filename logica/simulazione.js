@@ -2,16 +2,24 @@
 //  SIMULAZIONE DEL CAMPIONATO
 // ----------------------------------------------------------------------------
 //  20 squadre: la tua + 19 varianti storiche casuali (senza duplicare la
-//  stessa squadra-stagione). Girone all'italiana di andata e ritorno (38
-//  giornate). I risultati delle partite dipendono dalla forza delle squadre.
+//  stessa squadra-stagione). Girone di andata e ritorno (38 giornate).
+//  La forza dipende dagli 11 titolari e dall'allenatore; ogni partita ha una
+//  "forma del giorno" che produce sorprese realistiche.
 // ============================================================================
 
 import { SQUADRE } from "@/dati/squadre";
 
-const VANTAGGIO_CASA = 0.35; // gol attesi extra per chi gioca in casa
-const GOL_BASE = 1.35; // media gol di una squadra in una partita equilibrata
+const VANTAGGIO_CASA = 0.3; // gol attesi extra per chi gioca in casa
+const GOL_BASE = 1.3; // media gol in una partita equilibrata
+const BONUS_ALL_BASE = 0.8; // panchina "media" attribuita alle avversarie
 
-// Forza di una squadra = media degli overall dei suoi 11 migliori giocatori.
+// Bonus/malus di forza dato dall'allenatore (riferito a un tecnico medio ~82).
+export function bonusAllenatore(allenatore) {
+  if (!allenatore) return 0;
+  return (allenatore.overall - 82) * 0.3;
+}
+
+// Forza di una squadra storica = media degli overall dei suoi 11 migliori.
 export function forzaDaGiocatori(giocatori) {
   const ordinati = [...giocatori].sort((a, b) => b.overall - a.overall);
   const migliori = ordinati.slice(0, 11);
@@ -19,22 +27,26 @@ export function forzaDaGiocatori(giocatori) {
   return somma / migliori.length;
 }
 
-// Forza della rosa dell'utente = media degli 11 titolari.
-export function forzaUtente(rosa) {
+// Forza della rosa dell'utente = media degli 11 titolari + bonus allenatore.
+export function forzaUtente(rosa, allenatore) {
   const titolari = rosa.filter((p) => p.slot.tipo === "titolare");
   const somma = titolari.reduce((tot, p) => tot + p.giocatore.overall, 0);
-  return somma / titolari.length;
+  return somma / titolari.length + bonusAllenatore(allenatore);
 }
 
 // Costruisce le 20 squadre del campionato: la tua + 19 storiche casuali.
-export function costruisciCampionato(rosaUtente, nomeUtente = "La tua squadra") {
+export function costruisciCampionato(
+  rosaUtente,
+  nomeUtente = "La tua squadra",
+  allenatore = null
+) {
   const tua = {
     id: "__utente",
     nome: nomeUtente,
     squadra: nomeUtente,
     anno: "",
-    colore: "#22c55e",
-    forza: forzaUtente(rosaUtente),
+    colore: "#3f6b3a",
+    forza: forzaUtente(rosaUtente, allenatore),
     utente: true,
   };
 
@@ -47,7 +59,7 @@ export function costruisciCampionato(rosaUtente, nomeUtente = "La tua squadra") 
     squadra: s.squadra,
     anno: s.anno,
     colore: s.colore,
-    forza: forzaDaGiocatori(s.giocatori),
+    forza: forzaDaGiocatori(s.giocatori) + BONUS_ALL_BASE,
     utente: false,
   }));
 
@@ -72,12 +84,15 @@ function limita(valore, min, max) {
 
 // Simula una singola partita e ritorna { golCasa, golOspite }.
 function simulaPartita(casa, ospite) {
-  const diff = (casa.forza - ospite.forza) / 8;
+  const diff = (casa.forza - ospite.forza) / 7;
   const lambdaCasa = limita(GOL_BASE + VANTAGGIO_CASA + diff, 0.2, 5.5);
   const lambdaOspite = limita(GOL_BASE - diff, 0.2, 5.5);
+  // forma del giorno: introduce sorprese senza stravolgere i valori
+  const formaCasa = 0.82 + Math.random() * 0.36;
+  const formaOspite = 0.82 + Math.random() * 0.36;
   return {
-    golCasa: golPoisson(lambdaCasa),
-    golOspite: golPoisson(lambdaOspite),
+    golCasa: golPoisson(lambdaCasa * formaCasa),
+    golOspite: golPoisson(lambdaOspite * formaOspite),
   };
 }
 
@@ -85,12 +100,12 @@ function simulaPartita(casa, ospite) {
 function rigaVuota(squadra) {
   return {
     ...squadra,
-    g: 0, // giocate
-    v: 0, // vinte
-    n: 0, // pareggiate
-    p: 0, // perse
-    gf: 0, // gol fatti
-    gs: 0, // gol subiti
+    g: 0,
+    v: 0,
+    n: 0,
+    p: 0,
+    gf: 0,
+    gs: 0,
     punti: 0,
   };
 }

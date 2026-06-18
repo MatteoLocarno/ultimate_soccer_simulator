@@ -41,10 +41,15 @@ function estremi(partiteUtente) {
   return { migliore, peggiore };
 }
 
-export default function SchermataStagione({ rosa, nomeSquadra, onRicomincia }) {
+export default function SchermataStagione({
+  rosa,
+  allenatore,
+  nomeSquadra,
+  onRicomincia,
+}) {
   // Simula una sola volta, all'avvio della schermata.
   const [{ classifica, partiteUtente }] = useState(() => {
-    const campionato = costruisciCampionato(rosa, nomeSquadra);
+    const campionato = costruisciCampionato(rosa, nomeSquadra, allenatore);
     return simulaStagione(campionato);
   });
 
@@ -118,6 +123,14 @@ export default function SchermataStagione({ rosa, nomeSquadra, onRicomincia }) {
           <section className="card">
             <h2 className="sezione-titolo">La tua formazione</h2>
             <Campo titolari={titolari} mini />
+            {allenatore && (
+              <div className="all-caption">
+                <span className="ac-l">Allenatore</span>
+                <span className="ac-v">
+                  {allenatore.nome} {allenatore.cognome}
+                </span>
+              </div>
+            )}
           </section>
 
           <section className="card">

@@ -993,3 +993,216 @@ button {
     grid-template-columns: 1fr 1fr;
   }
 }
+
+/* ==========================================================================
+   DRAFT — selezione + formazione che si compone
+   ========================================================================== */
+.app.fase-draft {
+  max-width: 880px;
+}
+.draft-spread {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 18px;
+}
+.draft-formazione .sezione-titolo {
+  margin-top: 0;
+}
+
+@media (min-width: 760px) {
+  .draft-spread {
+    grid-template-columns: 1fr 0.82fr;
+    align-items: start;
+  }
+  .draft-formazione {
+    position: sticky;
+    top: 14px;
+  }
+}
+
+/* formazione in costruzione */
+.campo-costruzione {
+  aspect-ratio: 10 / 12;
+  margin-bottom: 10px;
+}
+.slot-pos {
+  position: absolute;
+  transform: translate(-50%, -50%);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 3px;
+  width: 70px;
+}
+.slot-disc {
+  width: 30px;
+  height: 30px;
+  border-radius: 50%;
+  display: grid;
+  place-items: center;
+  font-family: var(--font-titolo);
+  font-weight: 700;
+  font-size: 13px;
+}
+.slot-lbl {
+  font-family: var(--font-titolo);
+  font-size: 10px;
+  text-transform: uppercase;
+  letter-spacing: 0.3px;
+  padding: 1px 5px;
+  border-radius: 2px;
+  background: var(--pannello);
+  border: 1px solid #2d2417;
+  color: var(--testo);
+  max-width: 72px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.slot-vuoto .slot-disc {
+  background: rgba(243, 236, 210, 0.1);
+  border: 2px dashed rgba(243, 236, 210, 0.5);
+  color: rgba(243, 236, 210, 0.7);
+}
+.slot-pieno .slot-disc {
+  background: var(--verde);
+  border: 2px solid var(--verde-scuro);
+  color: var(--pannello);
+  box-shadow: inset 0 0 0 2px var(--verde), 2px 2px 0 rgba(0, 0, 0, 0.25);
+}
+.slot-corrente .slot-disc {
+  background: var(--oro);
+  border: 2px solid #6e4d10;
+  color: #2d2417;
+  animation: pulsa 1.15s ease-in-out infinite;
+}
+@keyframes pulsa {
+  0%, 100% {
+    transform: scale(1);
+    box-shadow: 0 0 0 0 rgba(168, 118, 26, 0.55);
+  }
+  50% {
+    transform: scale(1.14);
+    box-shadow: 0 0 0 7px rgba(168, 118, 26, 0);
+  }
+}
+
+/* riserve + allenatore sotto al campo */
+.riserve-draft {
+  display: grid;
+  gap: 10px;
+}
+.rd-fila {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+.rd-tit {
+  flex: 0 0 66px;
+  font-family: var(--font-titolo);
+  font-size: 11px;
+  letter-spacing: 1.5px;
+  text-transform: uppercase;
+  color: var(--testo-soft);
+}
+.rd-slots {
+  display: flex;
+  gap: 7px;
+  flex-wrap: wrap;
+  flex: 1;
+}
+.rd-chip {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 2px;
+}
+.rd-chip .slot-disc {
+  width: 27px;
+  height: 27px;
+  font-size: 11px;
+}
+.rd-chip.allenatore .slot-disc {
+  font-size: 10px;
+}
+.rd-nome {
+  font-family: var(--font-titolo);
+  font-size: 8.5px;
+  text-transform: uppercase;
+  color: var(--testo-soft);
+  max-width: 52px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+/* ==========================================================================
+   ALLENATORE (rosa + stagione)
+   ========================================================================== */
+.allenatore-card {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-bottom: 16px;
+}
+.allenatore-card .nome-g {
+  font-family: var(--font-titolo);
+  font-weight: 600;
+  font-size: 17px;
+  letter-spacing: 0.3px;
+}
+.allenatore-card .prov {
+  font-size: 12.5px;
+  font-style: italic;
+  color: var(--testo-soft);
+}
+.all-caption {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  margin-top: 10px;
+  padding-top: 8px;
+  border-top: 1px dashed var(--bordo-scuro);
+}
+.ac-l {
+  font-family: var(--font-titolo);
+  font-size: 11px;
+  letter-spacing: 1px;
+  text-transform: uppercase;
+  color: var(--testo-soft);
+}
+.ac-v {
+  font-family: var(--font-titolo);
+  font-weight: 700;
+  font-size: 15px;
+}
+
+/* ==========================================================================
+   RIFINITURE
+   ========================================================================== */
+.home,
+.draft,
+.rosa,
+.stagione {
+  animation: entra 0.32s ease both;
+}
+@keyframes entra {
+  from {
+    opacity: 0;
+    transform: translateY(6px);
+  }
+}
+:focus-visible {
+  outline: 3px solid var(--verde);
+  outline-offset: 2px;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .slot-corrente .slot-disc,
+  .home,
+  .draft,
+  .rosa,
+  .stagione {
+    animation: none !important;
+  }
+}
