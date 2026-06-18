@@ -1,0 +1,6 @@
+# Configurazione deploy su Netlify.
+# Netlify rileva automaticamente Next.js e installa il runtime corretto:
+# basta collegare il repository e ad ogni push il sito viene ribuildato.
+
+[build]
+  command = "npm run build"

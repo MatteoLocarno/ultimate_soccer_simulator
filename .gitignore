@@ -1,0 +1,17 @@
+# dipendenze
+/node_modules
+
+# build di Next.js
+/.next
+/out
+
+# log
+npm-debug.log*
+
+# ambiente
+.env*.local
+
+# varie
+.DS_Store
+.netlify
+dev.log

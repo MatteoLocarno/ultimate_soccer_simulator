@@ -1,0 +1,638 @@
+/* ==========================================================================
+   STILI GLOBALI — Leggende di Serie A
+   Tema SUPER VINTAGE: carta ingiallita, inchiostro, font condensati da
+   programma-partita anni '70-'80, bordi doppi e timbri stile figurine.
+   Mobile-first.
+   ========================================================================== */
+
+:root {
+  /* superfici "carta" */
+  --sfondo: #e7d9b4;
+  --sfondo-2: #ddcca2;
+  --pannello: #f1e7ca;
+  --pannello-2: #e6d6ac;
+  --bordo: #b5a274;
+  --bordo-scuro: #8a774f;
+
+  /* inchiostri e accenti d'epoca */
+  --testo: #2d2417;
+  --testo-soft: #7c6a4d;
+  --verde: #44663a;
+  --verde-scuro: #2f4a28;
+  --oro: #a8761a;
+  --rosso: #9c2a24;
+
+  --raggio: 4px;
+  --ombra: 4px 4px 0 rgba(45, 36, 23, 0.18);
+  --font-titolo: var(--font-display), "Arial Narrow", Impact, sans-serif;
+  --font-corpo: Georgia, "Times New Roman", "Iowan Old Style", serif;
+}
+
+* {
+  box-sizing: border-box;
+  -webkit-tap-highlight-color: transparent;
+}
+
+html,
+body {
+  margin: 0;
+  padding: 0;
+}
+
+body {
+  background-color: var(--sfondo);
+  /* macchie e vignettatura della carta invecchiata */
+  background-image:
+    radial-gradient(
+      120% 90% at 50% -10%,
+      rgba(255, 248, 224, 0.55) 0%,
+      rgba(0, 0, 0, 0) 45%
+    ),
+    radial-gradient(
+      140% 120% at 50% 110%,
+      rgba(72, 54, 25, 0.28) 0%,
+      rgba(0, 0, 0, 0) 55%
+    ),
+    radial-gradient(
+      circle at 18% 30%,
+      rgba(120, 90, 40, 0.07) 0%,
+      rgba(0, 0, 0, 0) 9%
+    ),
+    radial-gradient(
+      circle at 82% 70%,
+      rgba(120, 90, 40, 0.07) 0%,
+      rgba(0, 0, 0, 0) 9%
+    );
+  color: var(--testo);
+  font-family: var(--font-corpo);
+  min-height: 100dvh;
+  -webkit-font-smoothing: antialiased;
+}
+
+/* grana/rumore della carta sovrapposto a tutto */
+body::before {
+  content: "";
+  position: fixed;
+  inset: 0;
+  pointer-events: none;
+  z-index: 9999;
+  opacity: 0.5;
+  mix-blend-mode: multiply;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='180' height='180'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='2' stitchTiles='stitch'/%3E%3CfeColorMatrix type='saturate' values='0'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='0.06'/%3E%3C/svg%3E");
+}
+
+button {
+  font-family: var(--font-titolo);
+  cursor: pointer;
+}
+
+/* ---- contenitore principale ---- */
+.app {
+  max-width: 540px;
+  margin: 0 auto;
+  padding: 22px 16px calc(28px + env(safe-area-inset-bottom));
+  min-height: 100dvh;
+  display: flex;
+  flex-direction: column;
+  position: relative;
+}
+
+/* ---- intestazione ---- */
+.intestazione {
+  text-align: center;
+  margin-bottom: 18px;
+}
+.intestazione .logo {
+  display: inline-block;
+  font-family: var(--font-titolo);
+  font-size: 12px;
+  letter-spacing: 4px;
+  text-transform: uppercase;
+  color: var(--rosso);
+  font-weight: 700;
+  padding: 2px 0;
+  border-top: 2px solid var(--rosso);
+  border-bottom: 2px solid var(--rosso);
+}
+.intestazione h1 {
+  font-family: var(--font-titolo);
+  font-weight: 700;
+  font-size: 34px;
+  letter-spacing: 0.5px;
+  text-transform: uppercase;
+  margin: 10px 0 0;
+  line-height: 1.02;
+  text-shadow: 2px 2px 0 rgba(45, 36, 23, 0.12);
+}
+
+/* ---- bottoni ---- */
+.btn {
+  display: block;
+  width: 100%;
+  border: 2px solid var(--verde-scuro);
+  border-radius: var(--raggio);
+  padding: 15px 18px;
+  font-size: 19px;
+  font-weight: 700;
+  letter-spacing: 2px;
+  text-transform: uppercase;
+  color: var(--pannello);
+  background: var(--verde);
+  box-shadow: var(--ombra);
+  transition: transform 0.05s ease, box-shadow 0.05s ease;
+}
+.btn:active {
+  transform: translate(3px, 3px);
+  box-shadow: 0 0 0 rgba(0, 0, 0, 0);
+}
+.btn:disabled {
+  filter: grayscale(0.6) brightness(0.92);
+  cursor: not-allowed;
+}
+.btn-secondario {
+  background: var(--pannello);
+  color: var(--testo);
+  border: 2px solid var(--bordo-scuro);
+}
+
+/* ---- card generica (doppio bordo "ticket") ---- */
+.card {
+  background: var(--pannello);
+  border: 2px solid var(--bordo-scuro);
+  border-radius: var(--raggio);
+  padding: 16px;
+  box-shadow: inset 0 0 0 2px var(--pannello),
+    inset 0 0 0 3px var(--bordo), var(--ombra);
+}
+
+/* ==========================================================================
+   HOME
+   ========================================================================== */
+.home {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  gap: 22px;
+}
+.home .pallone {
+  font-size: 64px;
+  text-align: center;
+  filter: sepia(0.7) contrast(0.95) brightness(0.95);
+}
+.regole {
+  display: grid;
+  gap: 14px;
+}
+.regola {
+  display: flex;
+  gap: 12px;
+  align-items: flex-start;
+}
+.regola .num {
+  flex: 0 0 30px;
+  height: 30px;
+  border-radius: 50%;
+  display: grid;
+  place-items: center;
+  background: var(--rosso);
+  color: var(--pannello);
+  font-family: var(--font-titolo);
+  font-weight: 700;
+  font-size: 16px;
+  box-shadow: inset 0 0 0 2px var(--pannello), 0 0 0 2px var(--rosso);
+}
+.regola p {
+  margin: 3px 0 0;
+  font-size: 15px;
+  color: var(--testo);
+  line-height: 1.45;
+}
+.regola b {
+  color: var(--rosso);
+}
+
+/* ==========================================================================
+   DRAFT
+   ========================================================================== */
+.draft-top {
+  margin-bottom: 16px;
+}
+.progresso {
+  height: 12px;
+  border-radius: 2px;
+  background: var(--pannello);
+  border: 2px solid var(--bordo-scuro);
+  overflow: hidden;
+  margin-bottom: 10px;
+}
+.progresso > div {
+  height: 100%;
+  /* riempimento a strisce "da barbiere" vintage */
+  background-color: var(--verde);
+  background-image: repeating-linear-gradient(
+    45deg,
+    rgba(255, 255, 255, 0.18) 0,
+    rgba(255, 255, 255, 0.18) 6px,
+    rgba(0, 0, 0, 0) 6px,
+    rgba(0, 0, 0, 0) 12px
+  );
+  transition: width 0.3s ease;
+}
+.draft-meta {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  font-family: var(--font-titolo);
+  font-size: 13px;
+  letter-spacing: 1px;
+  text-transform: uppercase;
+  color: var(--testo-soft);
+}
+.badge-ruolo {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 4px 12px;
+  border-radius: 2px;
+  font-family: var(--font-titolo);
+  font-weight: 700;
+  font-size: 13px;
+  letter-spacing: 1px;
+  text-transform: uppercase;
+  background: var(--testo);
+  color: var(--pannello);
+}
+.badge-ruolo.tipo-panchina {
+  background: var(--oro);
+}
+
+.squadra-estratta {
+  text-align: center;
+  margin: 22px 0 16px;
+  padding: 14px 0;
+  border-top: 3px double var(--bordo-scuro);
+  border-bottom: 3px double var(--bordo-scuro);
+}
+.squadra-estratta .occhiello {
+  font-family: var(--font-titolo);
+  font-size: 12px;
+  letter-spacing: 3px;
+  text-transform: uppercase;
+  color: var(--testo-soft);
+}
+.squadra-estratta .nome {
+  font-family: var(--font-titolo);
+  font-size: 30px;
+  font-weight: 700;
+  text-transform: uppercase;
+  margin-top: 4px;
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+}
+.pallino {
+  width: 14px;
+  height: 14px;
+  border-radius: 2px;
+  display: inline-block;
+  border: 1px solid rgba(45, 36, 23, 0.5);
+}
+.squadra-estratta .anno {
+  font-family: var(--font-titolo);
+  color: var(--testo-soft);
+  font-weight: 500;
+  letter-spacing: 1px;
+}
+
+.istruzione {
+  text-align: center;
+  font-size: 14.5px;
+  color: var(--testo-soft);
+  margin-bottom: 16px;
+  font-style: italic;
+}
+.istruzione b {
+  color: var(--testo);
+  font-style: normal;
+}
+
+.lista-candidati {
+  display: grid;
+  gap: 10px;
+}
+.candidato {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  width: 100%;
+  text-align: left;
+  font-family: var(--font-corpo);
+  background: var(--pannello);
+  border: 2px solid var(--bordo-scuro);
+  border-radius: var(--raggio);
+  padding: 13px 16px;
+  color: var(--testo);
+  box-shadow: var(--ombra);
+  transition: transform 0.05s ease, box-shadow 0.05s ease, background 0.12s;
+}
+.candidato:active {
+  transform: translate(3px, 3px);
+  box-shadow: 0 0 0 rgba(0, 0, 0, 0);
+}
+.candidato:hover {
+  background: var(--pannello-2);
+}
+.candidato .nome-g {
+  font-family: var(--font-titolo);
+  font-size: 18px;
+  font-weight: 600;
+  letter-spacing: 0.3px;
+}
+.candidato .ruolo-g {
+  font-size: 12px;
+  font-style: italic;
+  color: var(--testo-soft);
+}
+.candidato .freccia {
+  font-family: var(--font-titolo);
+  color: var(--verde);
+  font-size: 24px;
+  font-weight: 700;
+}
+
+/* mini riepilogo rosa durante il draft */
+.mini-rosa {
+  margin-top: 20px;
+  padding-top: 14px;
+  border-top: 1px dashed var(--bordo-scuro);
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  justify-content: center;
+}
+.gettone {
+  font-family: var(--font-titolo);
+  font-size: 12px;
+  letter-spacing: 0.5px;
+  padding: 3px 9px;
+  border-radius: 2px;
+  background: var(--pannello);
+  border: 1px solid var(--bordo-scuro);
+  color: var(--testo-soft);
+}
+.gettone .r {
+  color: var(--rosso);
+  font-weight: 700;
+}
+
+/* ==========================================================================
+   ROSA (reveal overall)
+   ========================================================================== */
+.riepilogo-forza {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 16px;
+}
+.riepilogo-forza .etichetta {
+  font-family: var(--font-titolo);
+  font-size: 14px;
+  letter-spacing: 2px;
+  text-transform: uppercase;
+  color: var(--testo);
+}
+.riepilogo-forza .valore {
+  font-family: var(--font-titolo);
+  font-size: 40px;
+  font-weight: 700;
+  color: var(--rosso);
+  line-height: 1;
+}
+
+.reparto {
+  margin-bottom: 18px;
+}
+.reparto h3 {
+  font-family: var(--font-titolo);
+  font-size: 14px;
+  text-transform: uppercase;
+  letter-spacing: 2px;
+  color: var(--testo);
+  margin: 0 0 8px;
+  padding-bottom: 4px;
+  border-bottom: 2px solid var(--bordo-scuro);
+}
+.riga-giocatore {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 9px 12px;
+  border-radius: var(--raggio);
+  background: var(--pannello);
+  border: 2px solid var(--bordo-scuro);
+  margin-bottom: 8px;
+}
+.riga-giocatore.panchina {
+  background: transparent;
+  border-style: dashed;
+}
+/* badge OVR a "timbro tondo" stile figurina */
+.ovr {
+  flex: 0 0 46px;
+  height: 46px;
+  border-radius: 50%;
+  display: grid;
+  place-items: center;
+  font-family: var(--font-titolo);
+  font-weight: 700;
+  font-size: 19px;
+  color: var(--testo);
+  background: var(--pannello-2);
+  border: 2px solid var(--bordo-scuro);
+  box-shadow: inset 0 0 0 2px var(--pannello);
+}
+.ovr.alto {
+  color: var(--pannello);
+  background: var(--verde);
+  border-color: var(--verde-scuro);
+  box-shadow: inset 0 0 0 2px var(--verde);
+}
+.ovr.top {
+  color: var(--testo);
+  background: var(--oro);
+  border-color: #6e4d10;
+  box-shadow: inset 0 0 0 2px #d9a83f;
+}
+.riga-giocatore .info {
+  flex: 1;
+  min-width: 0;
+}
+.riga-giocatore .nome-g {
+  font-family: var(--font-titolo);
+  font-weight: 600;
+  font-size: 17px;
+  letter-spacing: 0.3px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.riga-giocatore .prov {
+  font-size: 12.5px;
+  font-style: italic;
+  color: var(--testo-soft);
+}
+
+/* ==========================================================================
+   STAGIONE
+   ========================================================================== */
+.verdetto {
+  text-align: center;
+  margin-bottom: 18px;
+}
+.verdetto .posizione {
+  font-family: var(--font-titolo);
+  font-size: 56px;
+  font-weight: 700;
+  line-height: 1;
+  color: var(--testo);
+}
+.verdetto .titolo {
+  font-family: var(--font-titolo);
+  font-size: 22px;
+  font-weight: 700;
+  letter-spacing: 1px;
+  text-transform: uppercase;
+  margin-top: 6px;
+}
+.verdetto .sottotitolo {
+  color: var(--testo-soft);
+  font-size: 14px;
+  font-style: italic;
+  margin-top: 2px;
+}
+.verdetto.scudetto .titolo {
+  color: var(--oro);
+  text-shadow: 1px 1px 0 rgba(45, 36, 23, 0.25);
+}
+
+.tab-classifica {
+  width: 100%;
+  border-collapse: collapse;
+  font-family: var(--font-corpo);
+  font-size: 14px;
+}
+.tab-classifica th {
+  text-align: right;
+  font-family: var(--font-titolo);
+  color: var(--testo-soft);
+  font-weight: 600;
+  font-size: 12px;
+  letter-spacing: 1px;
+  text-transform: uppercase;
+  padding: 4px 6px 8px;
+  border-bottom: 2px solid var(--bordo-scuro);
+}
+.tab-classifica th.sx,
+.tab-classifica td.sx {
+  text-align: left;
+}
+.tab-classifica td {
+  text-align: right;
+  padding: 8px 6px;
+  border-bottom: 1px solid var(--bordo);
+}
+.tab-classifica tr.utente td {
+  background: rgba(68, 102, 58, 0.18);
+  font-weight: 700;
+}
+.tab-classifica tr.utente td.sx {
+  border-left: 4px solid var(--verde);
+}
+.tab-classifica .pos {
+  font-family: var(--font-titolo);
+  color: var(--testo-soft);
+  width: 24px;
+}
+.tab-classifica .nome-sq {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  font-family: var(--font-titolo);
+  font-size: 15px;
+  letter-spacing: 0.3px;
+}
+.tab-classifica .pt {
+  font-family: var(--font-titolo);
+  font-weight: 700;
+}
+.zona-champions td.pos {
+  color: var(--rosso);
+  font-weight: 700;
+}
+
+.sezione-titolo {
+  font-family: var(--font-titolo);
+  font-size: 15px;
+  text-transform: uppercase;
+  letter-spacing: 2px;
+  color: var(--testo);
+  margin: 24px 0 10px;
+  padding-bottom: 4px;
+  border-bottom: 2px solid var(--bordo-scuro);
+}
+
+.partite {
+  display: grid;
+  gap: 6px;
+}
+.partita {
+  display: grid;
+  grid-template-columns: 1fr auto 1fr;
+  align-items: center;
+  gap: 8px;
+  font-family: var(--font-titolo);
+  font-size: 14px;
+  letter-spacing: 0.3px;
+  padding: 7px 10px;
+  border-radius: var(--raggio);
+  background: var(--pannello);
+  border: 1px solid var(--bordo-scuro);
+}
+.partita .ris {
+  font-weight: 700;
+  padding: 2px 9px;
+  border-radius: 2px;
+  background: var(--testo);
+  color: var(--pannello);
+}
+.partita .casa {
+  text-align: right;
+}
+.partita .ospite {
+  text-align: left;
+}
+.partita .mia {
+  color: var(--rosso);
+  font-weight: 700;
+}
+
+.spazio {
+  height: 14px;
+}
+.footer-note {
+  text-align: center;
+  color: var(--testo-soft);
+  font-size: 12.5px;
+  font-style: italic;
+  margin-top: 18px;
+}
+
+/* sticky azione in basso */
+.azione-fissa {
+  position: sticky;
+  bottom: 0;
+  padding-top: 14px;
+  background: linear-gradient(180deg, rgba(231, 217, 180, 0), var(--sfondo) 45%);
+  margin-top: auto;
+}
