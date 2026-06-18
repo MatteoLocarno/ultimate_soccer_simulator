@@ -636,3 +636,170 @@ button {
   background: linear-gradient(180deg, rgba(231, 217, 180, 0), var(--sfondo) 45%);
   margin-top: auto;
 }
+
+/* ==========================================================================
+   BRAND / STEMMA (home)
+   ========================================================================== */
+.brand {
+  text-align: center;
+  margin-bottom: 6px;
+}
+.brand-stemma {
+  display: inline-block;
+  filter: drop-shadow(3px 4px 0 rgba(45, 36, 23, 0.18));
+  animation: cala 0.6s cubic-bezier(0.2, 0.8, 0.3, 1) both;
+}
+.brand h1 {
+  font-family: var(--font-titolo);
+  font-weight: 700;
+  font-size: 52px;
+  line-height: 0.92;
+  letter-spacing: 1px;
+  text-transform: uppercase;
+  margin: 10px 0 0;
+  color: var(--testo);
+  text-shadow: 2px 2px 0 rgba(156, 42, 36, 0.18);
+}
+.brand-tag {
+  font-family: var(--font-titolo);
+  font-size: 13px;
+  letter-spacing: 3px;
+  text-transform: uppercase;
+  color: var(--rosso);
+  margin-top: 10px;
+  padding-top: 8px;
+  border-top: 2px solid var(--rosso);
+  display: inline-block;
+}
+
+/* ==========================================================================
+   CAMPO / FORMAZIONE (rosa)
+   ========================================================================== */
+.campo {
+  position: relative;
+  width: 100%;
+  aspect-ratio: 10 / 13;
+  margin-bottom: 20px;
+  border-radius: var(--raggio);
+  border: 3px solid var(--bordo-scuro);
+  box-shadow: var(--ombra);
+  overflow: hidden;
+  /* erba a strisce + righe del campo (chalk) come SVG di sfondo */
+  background-color: #4a6b3e;
+  background-image:
+    url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 130' preserveAspectRatio='none'%3E%3Cg fill='none' stroke='%23f3ecd2' stroke-width='0.6' opacity='0.5'%3E%3Crect x='4' y='4' width='92' height='122'/%3E%3Cline x1='4' y1='65' x2='96' y2='65'/%3E%3Ccircle cx='50' cy='65' r='12'/%3E%3Crect x='30' y='4' width='40' height='15'/%3E%3Crect x='40' y='4' width='20' height='6'/%3E%3Crect x='30' y='111' width='40' height='15'/%3E%3Crect x='40' y='120' width='20' height='6'/%3E%3C/g%3E%3C/svg%3E"),
+    repeating-linear-gradient(
+      180deg,
+      rgba(255, 255, 255, 0.05) 0,
+      rgba(255, 255, 255, 0.05) 12.5%,
+      rgba(0, 0, 0, 0.05) 12.5%,
+      rgba(0, 0, 0, 0.05) 25%
+    );
+  background-size: 100% 100%, 100% 100%;
+  background-repeat: no-repeat;
+}
+.fila {
+  position: absolute;
+  left: 0;
+  right: 0;
+  transform: translateY(-50%);
+  display: flex;
+  justify-content: space-evenly;
+  padding: 0 6px;
+}
+.token {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 4px;
+  width: 22%;
+  animation: spunta 0.45s ease both;
+}
+.tok-ovr {
+  width: 42px;
+  height: 42px;
+  border-radius: 50%;
+  display: grid;
+  place-items: center;
+  font-family: var(--font-titolo);
+  font-weight: 700;
+  font-size: 18px;
+  color: var(--testo);
+  background: var(--pannello);
+  border: 2px solid #2d2417;
+  box-shadow: inset 0 0 0 2px var(--pannello-2), 2px 2px 0 rgba(0, 0, 0, 0.25);
+}
+.tok-ovr.alto {
+  color: var(--pannello);
+  background: var(--verde-scuro);
+  box-shadow: inset 0 0 0 2px var(--verde), 2px 2px 0 rgba(0, 0, 0, 0.25);
+}
+.tok-ovr.top {
+  color: var(--testo);
+  background: var(--oro);
+  box-shadow: inset 0 0 0 2px #d9a83f, 2px 2px 0 rgba(0, 0, 0, 0.25);
+}
+.tok-nome {
+  font-family: var(--font-titolo);
+  font-size: 11px;
+  letter-spacing: 0.3px;
+  text-transform: uppercase;
+  text-align: center;
+  line-height: 1.05;
+  max-width: 100%;
+  padding: 2px 5px;
+  border-radius: 2px;
+  color: var(--testo);
+  background: var(--pannello);
+  border: 1px solid #2d2417;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.reparto-panchina .riga-giocatore {
+  animation: spunta 0.4s ease both;
+}
+
+.etichetta-sub {
+  font-family: var(--font-corpo);
+  font-style: italic;
+  font-size: 12.5px;
+  color: var(--testo-soft);
+}
+
+/* stemma nel verdetto Scudetto */
+.verdetto-stemma {
+  display: inline-block;
+  margin-bottom: 6px;
+  filter: drop-shadow(2px 3px 0 rgba(45, 36, 23, 0.2));
+  animation: cala 0.6s cubic-bezier(0.2, 0.8, 0.3, 1) both;
+}
+
+/* ==========================================================================
+   ANIMAZIONI
+   ========================================================================== */
+@keyframes spunta {
+  from {
+    opacity: 0;
+    transform: translateY(8px) scale(0.85);
+  }
+}
+.fila .token {
+  /* il translateY della fila va preservato: anima solo opacità qui */
+}
+@keyframes cala {
+  from {
+    opacity: 0;
+    transform: translateY(-12px) scale(0.9);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .brand-stemma,
+  .verdetto-stemma,
+  .token,
+  .reparto-panchina .riga-giocatore {
+    animation: none !important;
+  }
+}

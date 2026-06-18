@@ -1,13 +1,17 @@
-// Schermata iniziale: titolo + regole rapide + pulsante per avviare il draft.
+import Stemma from "@/componenti/Stemma";
+
+// Schermata iniziale: stemma + brand + regole rapide + avvio del draft.
 export default function SchermataHome({ onInizia }) {
   return (
     <div className="home">
-      <header className="intestazione">
-        <div className="logo">Draft Storico</div>
-        <h1>Leggende di Serie A</h1>
+      <header className="brand">
+        <Stemma size={132} className="brand-stemma" />
+        <h1>
+          Dinastia<br />
+          Scudetto
+        </h1>
+        <div className="brand-tag">Il draft delle leggende della Serie A</div>
       </header>
-
-      <div className="pallone">⚽️</div>
 
       <div className="card regole">
         <div className="regola">
@@ -28,8 +32,8 @@ export default function SchermataHome({ onInizia }) {
         <div className="regola">
           <span className="num">3</span>
           <p>
-            <b>Vinci il campionato.</b> Sfidi 19 squadre leggendarie in un
-            torneo a 20: punta allo Scudetto.
+            <b>Costruisci la dinastia.</b> Sfidi 19 squadre leggendarie in un
+            torneo a 20: vinci lo Scudetto.
           </p>
         </div>
       </div>

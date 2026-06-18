@@ -1,8 +1,8 @@
 {
-  "name": "leggende-serie-a",
+  "name": "dinastia-scudetto",
   "version": "0.1.0",
   "private": true,
-  "description": "Gioco manageriale casual: draft di leggende storiche della Serie A",
+  "description": "Dinastia Scudetto — gioco manageriale casual: draft di leggende storiche della Serie A",
   "scripts": {
     "dev": "next dev",
     "build": "next build",

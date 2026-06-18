@@ -1,5 +1,5 @@
-import { NOMI_RUOLO_PLURALE } from "@/logica/formazione";
 import { forzaUtente } from "@/logica/simulazione";
+import Campo from "@/componenti/Campo";
 
 const ORDINE_RUOLI = ["P", "D", "C", "A"];
 
@@ -10,7 +10,7 @@ function classeOvr(overall) {
   return "ovr";
 }
 
-// Schermata di riepilogo: rivela gli overall e mostra forza complessiva.
+// Schermata di riepilogo: rivela gli overall, mostra il campo e la forza.
 export default function SchermataRosa({ rosa, onSimula }) {
   const forza = Math.round(forzaUtente(rosa) * 10) / 10;
 
@@ -24,24 +24,6 @@ export default function SchermataRosa({ rosa, onSimula }) {
     })).filter((g) => g.giocatori.length > 0);
   }
 
-  function rigaGiocatore(p, i, panchina = false) {
-    return (
-      <div className={`riga-giocatore ${panchina ? "panchina" : ""}`} key={i}>
-        <div className={classeOvr(p.giocatore.overall)}>
-          {p.giocatore.overall}
-        </div>
-        <div className="info">
-          <div className="nome-g">
-            {p.giocatore.nome} {p.giocatore.cognome}
-          </div>
-          <div className="prov">
-            {p.provenienza.squadra} · {p.provenienza.anno}
-          </div>
-        </div>
-      </div>
-    );
-  }
-
   return (
     <div className="rosa">
       <header className="intestazione">
@@ -52,29 +34,32 @@ export default function SchermataRosa({ rosa, onSimula }) {
       <div className="card riepilogo-forza">
         <div>
           <div className="etichetta">Forza della squadra</div>
-          <div style={{ fontSize: 12, color: "var(--testo-soft)" }}>
-            media degli 11 titolari
-          </div>
+          <div className="etichetta-sub">media degli 11 titolari</div>
         </div>
         <div className="valore">{forza}</div>
       </div>
 
-      <section className="reparto">
-        <h3>Titolari · 4-3-3</h3>
-        {gruppoPerRuolo(titolari).map((g) => (
-          <div key={g.ruolo}>
-            {g.giocatori.map((p, i) => rigaGiocatore(p, `t-${g.ruolo}-${i}`))}
-          </div>
-        ))}
-      </section>
+      <Campo titolari={titolari} />
 
-      <section className="reparto">
+      <section className="reparto reparto-panchina">
         <h3>Panchina</h3>
         {gruppoPerRuolo(panchina).map((g) => (
           <div key={g.ruolo}>
-            {g.giocatori.map((p, i) =>
-              rigaGiocatore(p, `p-${g.ruolo}-${i}`, true)
-            )}
+            {g.giocatori.map((p, i) => (
+              <div className="riga-giocatore panchina" key={`p-${g.ruolo}-${i}`}>
+                <div className={classeOvr(p.giocatore.overall)}>
+                  {p.giocatore.overall}
+                </div>
+                <div className="info">
+                  <div className="nome-g">
+                    {p.giocatore.nome} {p.giocatore.cognome}
+                  </div>
+                  <div className="prov">
+                    {p.provenienza.squadra} · {p.provenienza.anno}
+                  </div>
+                </div>
+              </div>
+            ))}
           </div>
         ))}
       </section>

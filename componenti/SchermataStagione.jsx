@@ -5,6 +5,7 @@ import {
   costruisciCampionato,
   simulaStagione,
 } from "@/logica/simulazione";
+import Stemma from "@/componenti/Stemma";
 
 // Messaggio finale in base alla posizione in classifica.
 function verdetto(posizione) {
@@ -39,6 +40,7 @@ export default function SchermataStagione({ rosa, onRicomincia }) {
       </header>
 
       <div className={`verdetto ${v.classe}`}>
+        {posizione === 1 && <Stemma size={96} className="verdetto-stemma" />}
         <div className="posizione">{posizione}°</div>
         <div className="titolo">{v.titolo}</div>
         <div className="sottotitolo">{v.sotto}</div>

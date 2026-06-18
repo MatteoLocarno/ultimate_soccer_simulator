@@ -11,9 +11,17 @@ const oswald = Oswald({
 });
 
 export const metadata = {
-  title: "Leggende di Serie A — Draft Storico",
+  metadataBase: new URL("https://dinastiascudetto.netlify.app"),
+  title: "Dinastia Scudetto — Draft Storico di Serie A",
   description:
-    "Crea la tua squadra leggendaria pescando i campioni della storia della Serie A e vinci il campionato.",
+    "Pesca i campioni della storia della Serie A a overall nascosto, componi la rosa e costruisci la tua dinastia vincendo lo Scudetto.",
+  openGraph: {
+    title: "Dinastia Scudetto",
+    description:
+      "Il draft delle leggende della Serie A. Conta solo la tua memoria calcistica.",
+    type: "website",
+    locale: "it_IT",
+  },
 };
 
 export const viewport = {
