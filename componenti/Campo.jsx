@@ -17,7 +17,7 @@ function Gettone({ p, ritardo }) {
   );
 }
 
-export default function Campo({ titolari }) {
+export default function Campo({ titolari, mini = false }) {
   const perRuolo = (r) => titolari.filter((p) => p.slot.ruolo === r);
 
   // Dall'alto (attacco) verso il basso (porta).
@@ -30,7 +30,7 @@ export default function Campo({ titolari }) {
 
   let indice = 0;
   return (
-    <div className="campo">
+    <div className={`campo${mini ? " campo-mini" : ""}`}>
       {file.map((fila, ri) => (
         <div className="fila" style={{ top: fila.y }} key={ri}>
           {fila.g.map((p) => (

@@ -1,7 +1,7 @@
 import Stemma from "@/componenti/Stemma";
 
-// Schermata iniziale: stemma + brand + regole rapide + avvio del draft.
-export default function SchermataHome({ onInizia }) {
+// Schermata iniziale: stemma + brand + nome squadra + regole + avvio del draft.
+export default function SchermataHome({ nome, onNome, onInizia }) {
   return (
     <div className="home">
       <header className="brand">
@@ -36,6 +36,19 @@ export default function SchermataHome({ onInizia }) {
             torneo a 20: vinci lo Scudetto.
           </p>
         </div>
+      </div>
+
+      <div className="campo-nome">
+        <label htmlFor="nome-squadra">Nome della tua squadra</label>
+        <input
+          id="nome-squadra"
+          type="text"
+          value={nome}
+          onChange={(e) => onNome(e.target.value)}
+          placeholder="La tua squadra"
+          maxLength={24}
+          autoComplete="off"
+        />
       </div>
 
       <button className="btn" onClick={onInizia}>
