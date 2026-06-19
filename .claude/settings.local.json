@@ -22,7 +22,10 @@
       "Bash(git remote *)",
       "Bash(git push *)",
       "Bash(node scripts/genera-seed.cjs)",
-      "Bash(git check-ignore *)"
+      "Bash(git check-ignore *)",
+      "Bash(git rm *)",
+      "Bash(ls supabase *)",
+      "Bash(ls scripts *)"
     ]
   }
 }

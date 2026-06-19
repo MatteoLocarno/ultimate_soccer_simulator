@@ -76,29 +76,35 @@ npm run build    # build di produzione
 
 ---
 
-## 🟢 Database su Supabase (opzionale, con fallback)
+## 🟢 Database su Supabase (con fallback)
 
 Il gioco funziona **da subito senza Supabase**: i dati locali in `/dati` sono il
-backup. Se Supabase è configurato e popolato, viene usato al suo posto; in caso
-di errore o tabelle mancanti si ricade automaticamente sui dati locali
-(vedi [`dati/caricaDati.js`](dati/caricaDati.js)).
+backup. Se Supabase è configurato e abbastanza popolato viene usato al suo
+posto; in caso di errore, dati insufficienti o tabelle non leggibili si ricade
+automaticamente sui dati locali (vedi [`dati/caricaDati.js`](dati/caricaDati.js)).
 
-**Setup (una volta):**
+**Schema (normalizzato) letto dal gioco:**
 
-1. Crea il file `.env.local` (già in `.gitignore`) con:
+- `team_season` (+ `teams`, `seasons`) → squadra-stagione
+- `player_season` (+ `players`) → giocatori, con `overall` e `ruolo_principale`
+- `coach_season` (+ `coaches`) → allenatori, con `overall`
+
+`caricaDati.js` mappa queste tabelle nella forma usata dal gioco. Serve almeno
+**20 squadre-stagione con ≥11 giocatori** e **≥4 allenatori**, altrimenti usa i
+dati locali. Il `ruolo` viene normalizzato a `P/D/C/A`. I colori squadra non
+sono nel DB: sono assegnati per nome (con fallback).
+
+**Setup:**
+
+1. `.env.local` (già in `.gitignore`):
    ```bash
    NEXT_PUBLIC_SUPABASE_URL=https://xxxx.supabase.co
    NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY=sb_publishable_...
    ```
-2. Nell'editor SQL di Supabase esegui, in ordine:
-   - [`supabase/schema.sql`](supabase/schema.sql) — crea le tabelle + lettura pubblica
-   - [`supabase/seed.sql`](supabase/seed.sql) — inserisce squadre, giocatori, allenatori
-3. (Su Netlify) aggiungi le stesse due variabili d'ambiente.
-
-Il seed si rigenera dai dati locali con:
-```bash
-node scripts/genera-seed.cjs
-```
+2. Su **Netlify** aggiungi le stesse due variabili (Environment variables).
+3. **Lettura pubblica**: le tabelle create via SQL sono leggibili dalla
+   publishable key (RLS disabilitata di default). Se attivi RLS, aggiungi una
+   policy `for select using (true)` su ogni tabella usata.
 
 ---
 
