@@ -51,16 +51,28 @@ function coloreSquadra(nome) {
   return PALETTE_FALLBACK[h % PALETTE_FALLBACK.length];
 }
 
-// Normalizza il ruolo a P/D/C/A (gestisce sia le sigle sia parole italiane).
+// Riduce i ruoli dettagliati del DB ai 4 macro-ruoli usati dal gioco (P/D/C/A).
+const MAPPA_RUOLO = {
+  // portiere
+  POR: "P", GK: "P", P: "P",
+  // difensori (terzini + centrali)
+  TD: "D", TS: "D", DC: "D", DCD: "D", DCS: "D", DD: "D", DS: "D", D: "D",
+  // centrocampisti (mediani, mezzali, registi, esterni di centrocampo)
+  CC: "C", CDC: "C", MED: "C", REG: "C", MEZ: "C", ED: "C", ES: "C", C: "C",
+  // attaccanti (ali, trequartisti, punte)
+  AD: "A", AS: "A", TRQ: "A", ATT: "A", SP: "A", PC: "A", SS: "A", A: "A",
+};
+
 function normalizzaRuolo(r) {
   if (!r) return null;
   const s = String(r).trim().toUpperCase();
-  if (["P", "D", "C", "A"].includes(s)) return s;
-  if (s.startsWith("PORT") || s === "GK") return "P";
-  if (s.startsWith("DIF") || s.startsWith("DEF")) return "D";
-  if (s.startsWith("CEN") || s.startsWith("MID") || s.startsWith("CC")) return "C";
-  if (s.startsWith("ATT") || s.startsWith("FW") || s.startsWith("PUN")) return "A";
-  return s[0] || null;
+  if (MAPPA_RUOLO[s]) return MAPPA_RUOLO[s];
+  // fallback per eventuali parole estese non previste
+  if (s.startsWith("PORT")) return "P";
+  if (s.startsWith("DIF") || s.startsWith("TER")) return "D";
+  if (s.startsWith("CEN") || s.startsWith("MED") || s.startsWith("EST")) return "C";
+  if (s.startsWith("ATT") || s.startsWith("ALA") || s.startsWith("PUN") || s.startsWith("TREQ")) return "A";
+  return null;
 }
 
 function nomeCognome(players, nomeCompleto) {
@@ -134,9 +146,16 @@ export async function caricaDati() {
 
     // Se i dati sono insufficienti, meglio i locali.
     if (squadre.length < 20 || allenatori.length < 4) {
+      console.warn(
+        `Supabase: dati insufficienti (${squadre.length} squadre valide, ${allenatori.length} allenatori) — uso i dati locali. ` +
+          "Controlla che le tabelle siano popolate e leggibili (RLS/grant)."
+      );
       return { ...DATI_LOCALI, fonte: "locale" };
     }
 
+    console.info(
+      `Dati da Supabase: ${squadre.length} squadre, ${allenatori.length} allenatori.`
+    );
     return { squadre, allenatori, fonte: "supabase" };
   } catch (e) {
     console.warn("Supabase non disponibile, uso i dati locali:", e?.message || e);

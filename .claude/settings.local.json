@@ -25,7 +25,9 @@
       "Bash(git check-ignore *)",
       "Bash(git rm *)",
       "Bash(ls supabase *)",
-      "Bash(ls scripts *)"
+      "Bash(ls scripts *)",
+      "Bash(curl -s -o /dev/null -w \"%{http_code}\\\\n\" https://dinastiascudetto.netlify.app/)",
+      "Bash(curl -s https://dinastiascudetto.netlify.app/)"
     ]
   }
 }
