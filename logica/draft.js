@@ -42,13 +42,13 @@ export function chiavePersona(giocatore) {
 // Estrae una squadra con almeno un giocatore del ruolo richiesto, non ancora
 // scelto né come singola voce né come persona. Ritorna { squadra, candidati }
 // con i candidati in ordine alfabetico, oppure null se nulla è disponibile.
-export function estraiPerRuolo(ruolo, idsUsati, personeUsate = new Set()) {
+export function estraiPerRuolo(ruolo, idsUsati, personeUsate = new Set(), squadre = SQUADRE) {
   const valido = (squadra, g) =>
     g.ruolo === ruolo &&
     !idsUsati.has(idGiocatore(squadra, g)) &&
     !personeUsate.has(chiavePersona(g));
 
-  const disponibili = SQUADRE.filter((squadra) =>
+  const disponibili = squadre.filter((squadra) =>
     squadra.giocatori.some((g) => valido(squadra, g))
   );
 
@@ -64,8 +64,8 @@ export function estraiPerRuolo(ruolo, idsUsati, personeUsate = new Set()) {
 }
 
 // Estrae n allenatori casuali (distinti), mostrati in ordine alfabetico.
-export function estraiAllenatori(n = 4) {
-  return [...ALLENATORI]
+export function estraiAllenatori(n = 4, allenatori = ALLENATORI) {
+  return [...allenatori]
     .sort(() => Math.random() - 0.5)
     .slice(0, n)
     .map((a) => ({ ...a, _id: `all-${a.nome}-${a.cognome}` }))

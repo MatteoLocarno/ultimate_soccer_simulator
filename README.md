@@ -68,7 +68,37 @@ npm run build    # build di produzione
 1. Pusha il progetto su un repository GitHub.
 2. Su Netlify: **Add new site → Import an existing project** e seleziona il repo.
 3. Netlify rileva Next.js da solo (vedi `netlify.toml`): comando `npm run build`.
-4. Ad ogni `git push` il sito viene ribuildato e pubblicato automaticamente.
+4. **Variabili d'ambiente** (Site settings → Environment variables) — necessarie
+   solo se vuoi usare Supabase (vedi sotto):
+   - `NEXT_PUBLIC_SUPABASE_URL`
+   - `NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY`
+5. Ad ogni `git push` il sito viene ribuildato e pubblicato automaticamente.
+
+---
+
+## 🟢 Database su Supabase (opzionale, con fallback)
+
+Il gioco funziona **da subito senza Supabase**: i dati locali in `/dati` sono il
+backup. Se Supabase è configurato e popolato, viene usato al suo posto; in caso
+di errore o tabelle mancanti si ricade automaticamente sui dati locali
+(vedi [`dati/caricaDati.js`](dati/caricaDati.js)).
+
+**Setup (una volta):**
+
+1. Crea il file `.env.local` (già in `.gitignore`) con:
+   ```bash
+   NEXT_PUBLIC_SUPABASE_URL=https://xxxx.supabase.co
+   NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY=sb_publishable_...
+   ```
+2. Nell'editor SQL di Supabase esegui, in ordine:
+   - [`supabase/schema.sql`](supabase/schema.sql) — crea le tabelle + lettura pubblica
+   - [`supabase/seed.sql`](supabase/seed.sql) — inserisce squadre, giocatori, allenatori
+3. (Su Netlify) aggiungi le stesse due variabili d'ambiente.
+
+Il seed si rigenera dai dati locali con:
+```bash
+node scripts/genera-seed.cjs
+```
 
 ---
 

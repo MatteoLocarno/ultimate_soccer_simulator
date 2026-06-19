@@ -39,7 +39,8 @@ export function costruisciCampionato(
   rosaUtente,
   nomeUtente = "La tua squadra",
   allenatore = null,
-  colore = "#3f6b3a"
+  colore = "#3f6b3a",
+  squadreDB = SQUADRE
 ) {
   const tua = {
     id: "__utente",
@@ -53,7 +54,7 @@ export function costruisciCampionato(
 
   // Mescola le squadre storiche e prendine 19 distinte (ogni voce del
   // database è già una squadra-stagione unica, quindi nessun duplicato).
-  const mescolate = [...SQUADRE].sort(() => Math.random() - 0.5).slice(0, 19);
+  const mescolate = [...squadreDB].sort(() => Math.random() - 0.5).slice(0, 19);
   const avversarie = mescolate.map((s) => ({
     id: s.id,
     nome: `${s.squadra} ${s.anno}`,

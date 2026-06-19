@@ -48,13 +48,17 @@ export default function SchermataStagione({
   capitano,
   nomeSquadra,
   colore,
+  squadre,
   onRicomincia,
 }) {
   // Simula una sola volta, all'avvio della schermata.
   const [{ classifica, partiteUtente, andamentoUtente }] = useState(() => {
-    const campionato = costruisciCampionato(rosa, nomeSquadra, allenatore, colore);
+    const campionato = costruisciCampionato(rosa, nomeSquadra, allenatore, colore, squadre);
     return simulaStagione(campionato);
   });
+
+  // Il "listone" delle partite si apre/chiude con un click (chiuso di default).
+  const [partiteAperte, setPartiteAperte] = useState(false);
 
   const posizione = classifica.findIndex((r) => r.utente) + 1;
   const mia = classifica[posizione - 1];
@@ -180,16 +184,25 @@ export default function SchermataStagione({
       </div>
 
       <section className="card">
-        <h2 className="sezione-titolo">Le tue partite</h2>
-        <div className="partite">
-          {partiteUtente.map((m, i) => (
-            <div className="partita" key={i}>
-              <span className={`casa ${m.inCasa ? "mia" : ""}`}>{m.casa}</span>
-              <span className="ris">{m.golCasa}–{m.golOspite}</span>
-              <span className={`ospite ${!m.inCasa ? "mia" : ""}`}>{m.ospite}</span>
-            </div>
-          ))}
-        </div>
+        <button
+          className="sezione-toggle"
+          onClick={() => setPartiteAperte((v) => !v)}
+          aria-expanded={partiteAperte}
+        >
+          <span className="sezione-titolo">Le tue partite</span>
+          <span className="toggle-icona">{partiteAperte ? "−" : "+"}</span>
+        </button>
+        {partiteAperte && (
+          <div className="partite">
+            {partiteUtente.map((m, i) => (
+              <div className="partita" key={i}>
+                <span className={`casa ${m.inCasa ? "mia" : ""}`}>{m.casa}</span>
+                <span className="ris">{m.golCasa}–{m.golOspite}</span>
+                <span className={`ospite ${!m.inCasa ? "mia" : ""}`}>{m.ospite}</span>
+              </div>
+            ))}
+          </div>
+        )}
       </section>
 
       <section className="card">

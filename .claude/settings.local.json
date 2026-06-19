@@ -20,7 +20,9 @@
       "Bash(git add *)",
       "Bash(git commit -q -m ' *)",
       "Bash(git remote *)",
-      "Bash(git push *)"
+      "Bash(git push *)",
+      "Bash(node scripts/genera-seed.cjs)",
+      "Bash(git check-ignore *)"
     ]
   }
 }

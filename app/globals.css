@@ -1365,6 +1365,41 @@ button {
 /* ==========================================================================
    GRAFICO ANDAMENTO
    ========================================================================== */
+/* intestazione cliccabile (apri/chiudi listone partite) */
+.sezione-toggle {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  width: 100%;
+  background: none;
+  border: none;
+  padding: 0 0 4px;
+  margin: 0;
+  text-align: left;
+  cursor: pointer;
+  border-bottom: 2px solid var(--bordo-scuro);
+}
+.sezione-toggle .sezione-titolo {
+  margin: 0;
+  padding: 0;
+  border-bottom: none;
+}
+.toggle-icona {
+  flex: 0 0 auto;
+  width: 28px;
+  height: 28px;
+  display: grid;
+  place-items: center;
+  font-family: var(--font-titolo);
+  font-weight: 700;
+  font-size: 22px;
+  line-height: 1;
+  color: var(--rosso);
+  background: var(--pannello);
+  border: 2px solid var(--bordo-scuro);
+  border-radius: 50%;
+}
+
 .andamento-chart {
   width: 100%;
   height: auto;

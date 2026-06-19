@@ -1,7 +1,8 @@
 "use client";
 
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { costruisciSlot, MODULO_DEFAULT } from "@/logica/formazione";
+import { caricaDati, DATI_LOCALI } from "@/dati/caricaDati";
 import SchermataHome from "@/componenti/SchermataHome";
 import SchermataSetup, { COLORI } from "@/componenti/SchermataSetup";
 import SchermataDraft from "@/componenti/SchermataDraft";
@@ -20,6 +21,19 @@ export default function Gioco() {
   const [rosa, setRosa] = useState([]);
   const [allenatore, setAllenatore] = useState(null);
   const [capitano, setCapitano] = useState(null);
+
+  // Dati del gioco: parte dai dati locali (gioco subito disponibile) e prova a
+  // sostituirli con quelli di Supabase se la connessione va a buon fine.
+  const [dati, setDati] = useState(DATI_LOCALI);
+  useEffect(() => {
+    let attivo = true;
+    caricaDati().then((d) => {
+      if (attivo && d) setDati(d);
+    });
+    return () => {
+      attivo = false;
+    };
+  }, []);
 
   // Slot del draft generati dal modulo scelto.
   const slot = useMemo(() => costruisciSlot(modulo), [modulo]);
@@ -58,7 +72,12 @@ export default function Gioco() {
       )}
 
       {fase === "draft" && (
-        <SchermataDraft slot={slot} onCompletato={completaDraft} />
+        <SchermataDraft
+          slot={slot}
+          squadre={dati.squadre}
+          allenatori={dati.allenatori}
+          onCompletato={completaDraft}
+        />
       )}
 
       {fase === "rosa" && (
@@ -78,6 +97,7 @@ export default function Gioco() {
           capitano={capitano}
           nomeSquadra={nomeEffettivo}
           colore={colore}
+          squadre={dati.squadre}
           onRicomincia={ricomincia}
         />
       )}

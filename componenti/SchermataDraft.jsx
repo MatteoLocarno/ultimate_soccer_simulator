@@ -8,7 +8,7 @@ import FormazioneDraft from "@/componenti/FormazioneDraft";
 // Schermata del draft. Sequenza: giocatori (per i 18 slot del modulo) →
 // allenatore → capitano. Tutto a overall nascosto, mentre la formazione si
 // compone di fianco.
-export default function SchermataDraft({ slot, onCompletato }) {
+export default function SchermataDraft({ slot, squadre, allenatori: listaAllenatori, onCompletato }) {
   const totaleSlot = slot.length;
   const totaleScelte = totaleSlot + 2; // + allenatore + capitano
 
@@ -27,9 +27,11 @@ export default function SchermataDraft({ slot, onCompletato }) {
     if (faseGiocatori) {
       const idsUsati = new Set(picks.map((p) => p.giocatore._id));
       const personeUsate = new Set(picks.map((p) => chiavePersona(p.giocatore)));
-      setEstrazione(estraiPerRuolo(slot[picks.length].ruolo, idsUsati, personeUsate));
+      setEstrazione(
+        estraiPerRuolo(slot[picks.length].ruolo, idsUsati, personeUsate, squadre)
+      );
     } else if (faseAllenatore) {
-      setAllenatori(estraiAllenatori(4));
+      setAllenatori(estraiAllenatori(4, listaAllenatori));
     }
   }, [picks, allenatoreScelto]); // eslint-disable-line react-hooks/exhaustive-deps
 
