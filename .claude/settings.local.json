@@ -34,7 +34,13 @@
       "Bash(curl -s 'https://tuzyophazjnftchfxalk.supabase.co/rest/v1/seasons?select=season_id,anno&order=season_id&limit=60' -H 'apikey: sb_publishable_VupQY-gV1gQhw4ci-x2fGg__Xw_oWOq' -H 'Authorization: Bearer sb_publishable_VupQY-gV1gQhw4ci-x2fGg__Xw_oWOq')",
       "Bash(echo \"\")",
       "Bash(echo \"=== teams \\(nomi e id\\) ===\")",
-      "Bash(curl -s 'https://tuzyophazjnftchfxalk.supabase.co/rest/v1/teams?select=team_id,nome_squadra&order=nome_squadra&limit=60' -H 'apikey: sb_publishable_VupQY-gV1gQhw4ci-x2fGg__Xw_oWOq' -H 'Authorization: Bearer sb_publishable_VupQY-gV1gQhw4ci-x2fGg__Xw_oWOq')"
+      "Bash(curl -s 'https://tuzyophazjnftchfxalk.supabase.co/rest/v1/teams?select=team_id,nome_squadra&order=nome_squadra&limit=60' -H 'apikey: sb_publishable_VupQY-gV1gQhw4ci-x2fGg__Xw_oWOq' -H 'Authorization: Bearer sb_publishable_VupQY-gV1gQhw4ci-x2fGg__Xw_oWOq')",
+      "Bash(py --version)",
+      "Bash(mkdir -p scripts/_test/html)",
+      "Bash(cat)",
+      "Bash(python scripts/genera_stagione.py scripts/_test/html \"2007-2008\" scripts/_test/out.sql)",
+      "Bash(py scripts/genera_stagione.py scripts/_test/html \"2007-2008\" scripts/_test/out.sql)",
+      "Bash(rm -rf scripts/_test)"
     ]
   }
 }
