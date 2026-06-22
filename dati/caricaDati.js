@@ -95,7 +95,9 @@ export async function caricaDati() {
           `team_season_id, team_nome,
            teams ( nome_squadra ),
            seasons ( anno ),
-           player_season ( overall, ruolo_principale, player_nome_completo, players ( nome, cognome ) )`
+           player_season ( overall, ruolo_principale, posizione, player_nome_completo,
+             players ( nome, cognome ),
+             player_role_map ( ruolo, overall_ruolo ) )`
         ),
       supabase
         .from("coach_season")
@@ -112,11 +114,32 @@ export async function caricaDati() {
         const giocatori = (ts.player_season || [])
           .map((ps) => {
             const { nome, cognome } = nomeCognome(ps.players, ps.player_nome_completo);
+            const ruoliMap = ps.player_role_map || [];
+
+            // overall: dal campo diretto, altrimenti il migliore tra i ruoli
+            let overall = Number(ps.overall);
+            if (!Number.isFinite(overall)) {
+              const ovrs = ruoliMap
+                .map((r) => Number(r.overall_ruolo))
+                .filter(Number.isFinite);
+              overall = ovrs.length ? Math.max(...ovrs) : NaN;
+            }
+
+            // ruolo: prima la posizione macro, poi ruolo_principale, poi il
+            // ruolo del miglior overall in player_role_map
+            let ruoloRaw = ps.posizione || ps.ruolo_principale;
+            if (!ruoloRaw && ruoliMap.length) {
+              const migliore = [...ruoliMap].sort(
+                (a, b) => Number(b.overall_ruolo) - Number(a.overall_ruolo)
+              )[0];
+              ruoloRaw = migliore?.ruolo;
+            }
+
             return {
               nome,
               cognome,
-              ruolo: normalizzaRuolo(ps.ruolo_principale),
-              overall: Math.round(Number(ps.overall)),
+              ruolo: normalizzaRuolo(ruoloRaw),
+              overall: Math.round(overall),
             };
           })
           .filter((g) => g.ruolo && Number.isFinite(g.overall));
