@@ -1305,6 +1305,198 @@ button {
 }
 
 /* ==========================================================================
+   DRAFT — skip + candidati
+   ========================================================================== */
+.skip-bar {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+  margin-bottom: 12px;
+}
+.skip-btn {
+  font-family: var(--font-titolo);
+  font-size: 11.5px;
+  letter-spacing: 0.5px;
+  text-transform: uppercase;
+  padding: 7px 11px;
+  border: 2px solid var(--bordo-scuro);
+  background: var(--pannello);
+  color: var(--testo);
+  border-radius: var(--raggio);
+  cursor: pointer;
+}
+.skip-btn:disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
+  text-decoration: line-through;
+}
+.cand-info {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  min-width: 0;
+}
+
+/* ==========================================================================
+   SIMULAZIONE LIVE
+   ========================================================================== */
+.live-top {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  margin-bottom: 14px;
+}
+.velocita-bar {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+  align-items: center;
+}
+.vel-btn {
+  font-family: var(--font-titolo);
+  font-size: 12px;
+  letter-spacing: 1px;
+  text-transform: uppercase;
+  padding: 6px 13px;
+  border: 2px solid var(--bordo-scuro);
+  background: var(--pannello);
+  color: var(--testo);
+  border-radius: 99px;
+  cursor: pointer;
+}
+.vel-btn.attivo {
+  background: var(--verde);
+  color: var(--pannello);
+  border-color: var(--verde-scuro);
+}
+.vel-btn.salta {
+  margin-left: auto;
+  color: var(--rosso);
+  border-color: var(--rosso);
+}
+.live-mia {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  gap: 10px;
+  font-family: var(--font-titolo);
+  font-size: 15px;
+  background: var(--pannello);
+  border: 1px solid var(--bordo-scuro);
+  border-radius: var(--raggio);
+  padding: 8px 10px;
+}
+.live-mia .ris {
+  font-weight: 700;
+  background: var(--testo);
+  color: var(--pannello);
+  padding: 2px 9px;
+  border-radius: 4px;
+}
+.live-mia .mia {
+  color: var(--rosso);
+  font-weight: 700;
+}
+
+.classifica-live {
+  position: relative;
+}
+.riga-live {
+  position: absolute;
+  left: 0;
+  right: 0;
+  height: 30px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 0 6px;
+  font-family: var(--font-corpo);
+  font-size: 13.5px;
+  border-bottom: 1px solid rgba(181, 162, 116, 0.5);
+  transition: top 0.45s cubic-bezier(0.2, 0.8, 0.2, 1);
+}
+.riga-live .rl-pos {
+  font-family: var(--font-titolo);
+  width: 22px;
+  text-align: center;
+  color: var(--testo-soft);
+}
+.riga-live .rl-nome {
+  font-family: var(--font-titolo);
+  flex: 1;
+  letter-spacing: 0.3px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.riga-live .rl-dr {
+  width: 38px;
+  text-align: right;
+  color: var(--testo-soft);
+}
+.riga-live .rl-pt {
+  font-family: var(--font-titolo);
+  font-weight: 700;
+  width: 30px;
+  text-align: right;
+}
+.riga-live.champions .rl-pos {
+  color: var(--rosso);
+  font-weight: 700;
+}
+.riga-live.retro {
+  opacity: 0.72;
+}
+.riga-live.utente {
+  background: rgba(68, 102, 58, 0.2);
+  border-radius: 4px;
+  font-weight: 700;
+}
+.riga-live.utente .rl-pos {
+  color: var(--verde-scuro);
+}
+
+/* ==========================================================================
+   CLASSIFICHE MARCATORI / ASSIST
+   ========================================================================== */
+.tab-bomber {
+  width: 100%;
+  border-collapse: collapse;
+  font-family: var(--font-corpo);
+  font-size: 13.5px;
+}
+.tab-bomber td {
+  padding: 6px 6px;
+  border-bottom: 1px solid rgba(181, 162, 116, 0.5);
+}
+.tab-bomber .bb-pos {
+  width: 22px;
+  text-align: center;
+  font-family: var(--font-titolo);
+  color: var(--testo-soft);
+}
+.tab-bomber .bb-nome {
+  font-family: var(--font-titolo);
+  letter-spacing: 0.3px;
+}
+.tab-bomber .bb-squadra {
+  color: var(--testo-soft);
+  font-size: 11.5px;
+  font-style: italic;
+  text-align: right;
+}
+.tab-bomber .bb-val {
+  font-family: var(--font-titolo);
+  font-weight: 700;
+  width: 34px;
+  text-align: right;
+  color: var(--rosso);
+}
+.tab-bomber tr.utente td {
+  background: rgba(68, 102, 58, 0.16);
+}
+
+/* ==========================================================================
    TITOLARI SUL CAMPO (schieramento per modulo) + fascia capitano
    ========================================================================== */
 .campo-schieramento .token {

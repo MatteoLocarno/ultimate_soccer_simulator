@@ -6,10 +6,10 @@ const W = 620;
 const H = 240;
 const PAD = { t: 16, r: 14, b: 26, l: 30 };
 
-export default function AndamentoChart({ andamento, nSquadre = 20 }) {
+export default function AndamentoChart({ andamento, nSquadre = 20, totaleGiornate }) {
   if (!andamento || andamento.length === 0) return null;
 
-  const nGiornate = andamento.length;
+  const nGiornate = Math.max(2, totaleGiornate || andamento.length);
   const x = (g) =>
     PAD.l + ((g - 1) / (nGiornate - 1)) * (W - PAD.l - PAD.r);
   const y = (pos) =>

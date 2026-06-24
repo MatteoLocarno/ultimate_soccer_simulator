@@ -39,12 +39,18 @@ function coloreSquadra(nome) {
 }
 
 function nomeCognome(players, nomeCompleto) {
+  let nome, cognome;
   if (players && (players.nome || players.cognome)) {
-    return { nome: players.nome || "", cognome: players.cognome || "" };
+    nome = players.nome || "";
+    cognome = players.cognome || "";
+  } else {
+    const parti = (nomeCompleto || "").trim().split(/\s+/);
+    nome = parti[0] || "";
+    cognome = parti.length > 1 ? parti.slice(1).join(" ") : "";
   }
-  const parti = (nomeCompleto || "").trim().split(/\s+/);
-  if (parti.length <= 1) return { nome: parti[0] || "", cognome: "" };
-  return { nome: parti[0], cognome: parti.slice(1).join(" ") };
+  // mononimi (Dida, Cafu, Doni…): evita "Doni Doni"
+  if (cognome && cognome.toLowerCase() === nome.toLowerCase()) cognome = "";
+  return { nome, cognome };
 }
 
 // Converte i dati locali (ruolo macro singolo) nella forma "ruoli[]".
@@ -135,10 +141,12 @@ export async function caricaDati() {
     let formazioni = (risForm?.data || [])
       .map((f) => {
         const slots = [...(f.formation_slots || [])].sort((a, b) => a.slot_numero - b.slot_numero);
+        // pos_x 0-100 → 10-90 (margini laterali); pos_y 5(porta)-78(attacco) →
+        // 86(basso)-22(alto), con margini sopra/sotto per non toccare i bordi.
         const posizioni = slots.map((s) => ({
           ruolo: String(s.ruolo).toUpperCase(),
-          x: Number(s.pos_x),
-          y: 100 - Number(s.pos_y), // pos_y: 5 porta → 78 attacco ⇒ y schermo
+          x: 10 + (Number(s.pos_x) / 100) * 80,
+          y: 90 - Number(s.pos_y) * 0.84,
         }));
         return { id: String(f.formation_id), nome: f.nome, posizioni, descrizione: descriviModulo(posizioni) };
       })
