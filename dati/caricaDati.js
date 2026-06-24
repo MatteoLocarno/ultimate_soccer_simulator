@@ -95,7 +95,7 @@ export async function caricaDati() {
           `team_season_id, team_nome,
            teams ( nome_squadra ),
            seasons ( anno ),
-           player_season ( overall, ruolo_principale, posizione, player_nome_completo,
+           player_season ( posizione, player_nome_completo,
              players ( nome, cognome ),
              player_role_map ( ruolo, overall_ruolo ) )`
         ),
