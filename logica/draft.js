@@ -1,69 +1,84 @@
 // ============================================================================
 //  LOGICA DEL DRAFT
 // ----------------------------------------------------------------------------
-//  Meccanica: per ogni slot viene ESTRATTA una squadra storica a caso e
-//  l'utente sceglie un giocatore (del ruolo richiesto) di quella squadra,
-//  SENZA vedere l'overall. Conta la conoscenza calcistica.
-//
-//  Regole:
-//   - i candidati sono mostrati in ordine alfabetico (l'ordine non rivela la
-//     forza);
-//   - uno stesso calciatore non può essere riproposto, nemmeno se appartiene
-//     a una squadra-stagione diversa (niente doppioni in rosa).
+//  Per ogni slot viene estratta una squadra storica a caso e si sceglie un
+//  giocatore (a overall nascosto). Regole:
+//   - candidati in ordine alfabetico (l'ordine non rivela la forza);
+//   - niente doppioni, nemmeno tra stagioni diverse;
+//   - lo slot ha un RUOLO (dettagliato per i titolari, macro per la panchina):
+//     si preferiscono i giocatori con quel ruolo esatto, altrimenti quelli
+//     dello stesso reparto. L'overall usato è quello del ruolo dello slot
+//     (o il migliore del reparto se non ha quel ruolo esatto).
 // ============================================================================
 
 import { SQUADRE } from "@/dati/squadre";
 import { ALLENATORI } from "@/dati/allenatori";
+import { macroRuolo } from "@/logica/formazione";
 
-// Restituisce un elemento casuale di un array.
 function casuale(array) {
   return array[Math.floor(Math.random() * array.length)];
 }
 
-// Chiave alfabetica per l'ordinamento (cognome, o nome se manca il cognome).
 function chiave(g) {
   return (g.cognome || g.nome || "").toLowerCase();
 }
-
 function ordinaAlfabetico(a, b) {
   return chiave(a).localeCompare(chiave(b), "it");
 }
 
-// Identificativo univoco di un giocatore-squadra (gestisce le riserve).
+// Identità della persona (a prescindere da stagione/ruolo): evita i doppioni.
 export function idGiocatore(squadra, giocatore) {
-  return `${squadra.id}__${giocatore.nome}_${giocatore.cognome}_${giocatore.ruolo}`;
+  return `${squadra.id}__${giocatore.nome}_${giocatore.cognome}`;
 }
-
-// Identità della PERSONA (a prescindere dalla stagione): evita i doppioni.
 export function chiavePersona(giocatore) {
   return `${giocatore.nome}|${giocatore.cognome}`;
 }
 
-// Estrae una squadra con almeno un giocatore del ruolo richiesto, non ancora
-// scelto né come singola voce né come persona. Ritorna { squadra, candidati }
-// con i candidati in ordine alfabetico, oppure null se nulla è disponibile.
-export function estraiPerRuolo(ruolo, idsUsati, personeUsate = new Set(), squadre = SQUADRE) {
-  const valido = (squadra, g) =>
-    g.ruolo === ruolo &&
-    !idsUsati.has(idGiocatore(squadra, g)) &&
-    !personeUsate.has(chiavePersona(g));
+// Overall del giocatore per lo slot richiesto.
+function overallPerSlot(g, slotRuolo) {
+  const r = String(slotRuolo).toUpperCase();
+  const esatto = g.ruoli.find((x) => x.ruolo.toUpperCase() === r);
+  if (esatto) return Math.round(esatto.overall);
+  const macro = macroRuolo(slotRuolo);
+  const reparto = g.ruoli.filter((x) => macroRuolo(x.ruolo) === macro);
+  const base = reparto.length ? reparto : g.ruoli;
+  return Math.round(Math.max(...base.map((x) => x.overall)));
+}
 
-  const disponibili = squadre.filter((squadra) =>
-    squadra.giocatori.some((g) => valido(squadra, g))
+// Giocatori di una squadra idonei a uno slot (ruolo esatto, o stesso reparto).
+function idonei(squadra, slotRuolo, idsUsati, personeUsate) {
+  const liberi = squadra.giocatori.filter(
+    (g) => !idsUsati.has(idGiocatore(squadra, g)) && !personeUsate.has(chiavePersona(g))
   );
+  const r = String(slotRuolo).toUpperCase();
+  const esatti = liberi.filter((g) => g.ruoli.some((x) => x.ruolo.toUpperCase() === r));
+  if (esatti.length) return esatti;
+  const macro = macroRuolo(slotRuolo);
+  return liberi.filter((g) => g.ruoli.some((x) => macroRuolo(x.ruolo) === macro));
+}
 
+// Estrae una squadra con candidati per lo slot. Ritorna { squadra, candidati }.
+export function estraiPerRuolo(slotRuolo, idsUsati, personeUsate = new Set(), squadre = SQUADRE) {
+  const disponibili = squadre.filter(
+    (s) => idonei(s, slotRuolo, idsUsati, personeUsate).length > 0
+  );
   if (disponibili.length === 0) return null;
 
   const squadra = casuale(disponibili);
-  const candidati = squadra.giocatori
-    .filter((g) => valido(squadra, g))
-    .map((g) => ({ ...g, _id: idGiocatore(squadra, g) }))
+  const candidati = idonei(squadra, slotRuolo, idsUsati, personeUsate)
+    .map((g) => ({
+      nome: g.nome,
+      cognome: g.cognome,
+      ruolo: slotRuolo,
+      overall: overallPerSlot(g, slotRuolo),
+      _id: idGiocatore(squadra, g),
+    }))
     .sort(ordinaAlfabetico);
 
   return { squadra, candidati };
 }
 
-// Estrae n allenatori casuali (distinti), mostrati in ordine alfabetico.
+// Estrae n allenatori casuali (distinti), in ordine alfabetico.
 export function estraiAllenatori(n = 4, allenatori = ALLENATORI) {
   return [...allenatori]
     .sort(() => Math.random() - 0.5)

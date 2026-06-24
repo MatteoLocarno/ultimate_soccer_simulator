@@ -3,6 +3,8 @@
 // scelti mostrano il COGNOME (mai l'overall, nascosto fino al reveal). Lo slot
 // in corso pulsa.
 
+import { macroRuolo } from "@/logica/formazione";
+
 function stato(indice, pick, slotCorrente) {
   if (pick) return "pieno";
   if (indice === slotCorrente) return "corrente";
@@ -32,7 +34,7 @@ export default function FormazioneDraft({
               className={`slot-pos slot-${st}`}
               style={{ left: `${s.x}%`, top: `${s.y}%` }}
             >
-              <span className="slot-disc">{s.ruolo}</span>
+              <span className="slot-disc">{macroRuolo(s.ruolo)}</span>
               {pick && <span className="slot-lbl">{cognome(pick)}</span>}
             </div>
           );

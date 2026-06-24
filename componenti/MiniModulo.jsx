@@ -1,6 +1,8 @@
 // Anteprima in miniatura di un modulo: disegna i pallini dei titolari sulle
 // loro posizioni in campo. Usata nel selettore di modulo (setup).
 
+import { macroRuolo } from "@/logica/formazione";
+
 const COLORE_RUOLO = {
   P: "#c2902a",
   D: "#f1e7ca",
@@ -29,7 +31,7 @@ export default function MiniModulo({ modulo }) {
           cx={pos.x}
           cy={pos.y}
           r="4.6"
-          fill={COLORE_RUOLO[pos.ruolo]}
+          fill={COLORE_RUOLO[macroRuolo(pos.ruolo)] || "#f1e7ca"}
           stroke="#2d2417"
           strokeWidth="1"
         />

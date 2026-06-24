@@ -1,6 +1,5 @@
 "use client";
 
-import { MODULI } from "@/logica/formazione";
 import MiniModulo from "@/componenti/MiniModulo";
 
 // Palette colori selezionabili per la squadra (tinte d'epoca + classiche).
@@ -20,6 +19,7 @@ export const COLORI = [
 export default function SchermataSetup({
   nome,
   onNome,
+  moduli,
   modulo,
   onModulo,
   colore,
@@ -50,7 +50,7 @@ export default function SchermataSetup({
       <section className="setup-sezione">
         <h3 className="sezione-titolo">Modulo</h3>
         <div className="griglia-moduli">
-          {MODULI.map((m) => (
+          {moduli.map((m) => (
             <button
               key={m.id}
               className={`modulo-card ${m.id === modulo.id ? "scelto" : ""}`}
