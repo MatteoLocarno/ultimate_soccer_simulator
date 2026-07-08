@@ -57,28 +57,28 @@ export const MODULI = [
   {
     id: "4-3-3", nome: "4-3-3", descrizione: "4 Dif · 3 Cen · 3 Att",
     posizioni: [
-      pos("P", 50, 88),
-      pos("D", 16, 69), pos("D", 39, 71), pos("D", 61, 71), pos("D", 84, 69),
-      pos("C", 27, 48), pos("C", 50, 50), pos("C", 73, 48),
-      pos("A", 28, 22), pos("A", 50, 19), pos("A", 72, 22),
+      pos("POR", 50, 88),
+      pos("TS", 16, 69), pos("DC", 39, 71), pos("DC", 61, 71), pos("TD", 84, 69),
+      pos("CC", 27, 48), pos("CDC", 50, 50), pos("CC", 73, 48),
+      pos("AS", 28, 22), pos("ATT", 50, 19), pos("AD", 72, 22),
     ],
   },
   {
     id: "4-4-2", nome: "4-4-2", descrizione: "4 Dif · 4 Cen · 2 Att",
     posizioni: [
-      pos("P", 50, 88),
-      pos("D", 16, 70), pos("D", 39, 72), pos("D", 61, 72), pos("D", 84, 70),
-      pos("C", 16, 49), pos("C", 39, 51), pos("C", 61, 51), pos("C", 84, 49),
-      pos("A", 35, 21), pos("A", 65, 21),
+      pos("POR", 50, 88),
+      pos("TS", 16, 70), pos("DC", 39, 72), pos("DC", 61, 72), pos("TD", 84, 70),
+      pos("ES", 16, 49), pos("CC", 39, 51), pos("CC", 61, 51), pos("ED", 84, 49),
+      pos("ATT", 35, 21), pos("ATT", 65, 21),
     ],
   },
   {
     id: "3-5-2", nome: "3-5-2", descrizione: "3 Dif · 5 Cen · 2 Att",
     posizioni: [
-      pos("P", 50, 88),
-      pos("D", 27, 72), pos("D", 50, 73), pos("D", 73, 72),
-      pos("C", 11, 53), pos("C", 31, 48), pos("C", 50, 51), pos("C", 69, 48), pos("C", 89, 53),
-      pos("A", 35, 21), pos("A", 65, 21),
+      pos("POR", 50, 88),
+      pos("DC", 27, 72), pos("DC", 50, 73), pos("DC", 73, 72),
+      pos("ES", 11, 53), pos("CC", 31, 48), pos("CDC", 50, 51), pos("CC", 69, 48), pos("ED", 89, 53),
+      pos("ATT", 35, 21), pos("ATT", 65, 21),
     ],
   },
 ];
