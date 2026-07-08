@@ -1,4 +1,5 @@
 import Stemma from "@/componenti/Stemma";
+import AdSlot from "@/componenti/AdSlot";
 
 // Schermata iniziale: stemma + brand + regole rapide. La CTA porta al setup.
 export default function SchermataHome({ onAvvia }) {
@@ -42,6 +43,10 @@ export default function SchermataHome({ onAvvia }) {
       <button className="btn" onClick={onAvvia}>
         Crea la tua squadra
       </button>
+
+      {/* Solo qui in home, lontano dal pulsante: nessun rischio di click
+          accidentali mentre l'utente naviga il gioco. */}
+      <AdSlot slot="0000000000" />
     </div>
   );
 }

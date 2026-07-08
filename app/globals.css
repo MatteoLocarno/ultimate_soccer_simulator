@@ -1608,3 +1608,25 @@ button {
     grid-template-columns: repeat(2, 1fr);
   }
 }
+
+/* ==========================================================================
+   ANNUNCI (AdSense) — solo nelle schermate di pausa (home, fine stagione)
+   ========================================================================== */
+.ad-slot {
+  margin: 20px 0;
+  padding: 14px 0 4px;
+  border-top: 1px dashed var(--bordo-scuro);
+  border-bottom: 1px dashed var(--bordo-scuro);
+  text-align: center;
+  min-height: 100px;
+  overflow: hidden;
+}
+.ad-slot .ad-label {
+  display: block;
+  font-family: var(--font-titolo);
+  font-size: 10px;
+  letter-spacing: 2px;
+  text-transform: uppercase;
+  color: var(--testo-soft);
+  margin-bottom: 8px;
+}

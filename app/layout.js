@@ -1,5 +1,7 @@
 import "./globals.css";
+import Script from "next/script";
 import { Oswald } from "next/font/google";
+import { ADSENSE_CLIENT } from "@/lib/adsense";
 
 // Font condensato in stile "programma di gioco" vintage, usato per titoli e
 // numeri. Auto-hostato da Next a build time: nessuna richiesta esterna.
@@ -34,7 +36,20 @@ export const viewport = {
 export default function RootLayout({ children }) {
   return (
     <html lang="it" className={oswald.variable}>
-      <body>{children}</body>
+      <body>
+        {children}
+        {/* Caricato una sola volta, dopo l'idratazione: non blocca il primo
+            render del gioco. Gli annunci veri e propri (componente AdSlot)
+            sono posizionati solo nelle schermate "di pausa" (home, fine
+            stagione), mai durante draft o simulazione live, per evitare
+            click accidentali sui tanti pulsanti interattivi di quelle fasi. */}
+        <Script
+          async
+          src={`https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=${ADSENSE_CLIENT}`}
+          crossOrigin="anonymous"
+          strategy="afterInteractive"
+        />
+      </body>
     </html>
   );
 }
