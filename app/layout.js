@@ -1,7 +1,7 @@
 import "./globals.css";
-import Script from "next/script";
 import { Oswald } from "next/font/google";
 import { ADSENSE_CLIENT } from "@/lib/adsense";
+import AdSenseLoader from "@/componenti/AdSenseLoader";
 
 // Font condensato in stile "programma di gioco" vintage, usato per titoli e
 // numeri. Auto-hostato da Next a build time: nessuna richiesta esterna.
@@ -45,22 +45,15 @@ export default function RootLayout({ children }) {
     <html lang="it" className={oswald.variable}>
       <body>
         {children}
-        {/* Caricamento reale dello script (per servire gli annunci): qui va
-            benissimo next/script afterInteractive, perché la VERIFICA di
-            proprietà è già coperta dal meta tag sopra. Un <script> nativo in
-            JSX, per contro, causerebbe errori React in console durante
-            l'idratazione (React non gestisce bene tag <script> letterali
-            nell'albero dei componenti). */}
-        <Script
-          async
-          src={`https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=${ADSENSE_CLIENT}`}
-          crossOrigin="anonymous"
-          strategy="afterInteractive"
-        />
-        {/* Gli annunci veri e propri (componente AdSlot) sono posizionati
-            solo nelle schermate "di pausa" (home, fine stagione), mai durante
-            draft o simulazione live, per evitare click accidentali sui tanti
-            pulsanti interattivi di quelle fasi. */}
+        {/* Carica lo script adsbygoogle SOLO se l'utente ha accettato i
+            cookie (vedi CookieBanner + lib/cookieConsent.js). La verifica di
+            proprietà del sito resta comunque valida grazie al meta tag sopra,
+            che è statico e indipendente dal consenso. Gli annunci veri e
+            propri (componente AdSlot) sono posizionati solo nelle schermate
+            "di pausa" (home, fine stagione), mai durante draft o simulazione
+            live, per evitare click accidentali sui tanti pulsanti
+            interattivi di quelle fasi. */}
+        <AdSenseLoader />
       </body>
     </html>
   );
