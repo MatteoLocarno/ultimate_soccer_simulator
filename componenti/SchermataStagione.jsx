@@ -254,7 +254,7 @@ export default function SchermataStagione({ rosa, allenatore, capitano, nomeSqua
 
       {/* Solo a fine partita, dopo tutti i contenuti: l'utente ha finito di
           leggere il recap, nessun pulsante interattivo nelle vicinanze. */}
-      <AdSlot slot="0000000000" />
+      <AdSlot slot="3984045835" />
 
       <div className="azione-fissa">
         <button className="btn" onClick={onRicomincia}>Gioca ancora</button>
