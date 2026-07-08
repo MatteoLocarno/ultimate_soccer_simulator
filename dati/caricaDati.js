@@ -72,30 +72,59 @@ export const DATI_LOCALI = {
   formazioni: MODULI,
 };
 
-export async function caricaDati() {
-  if (!supabaseAttivo) return { ...DATI_LOCALI, fonte: "locale" };
+// Il DB ora copre centinaia di squadre-stagione: una select unica con join
+// annidati (giocatori + ruoli) va in timeout lato Postgres, e anche
+// paginare con range()/OFFSET rallenta troppo (Postgres deve scandire e
+// scartare le righe precedenti nei join a ogni pagina). Si scaricano prima
+// solo gli ID (veloce), poi si interroga a blocchi filtrando per ID
+// (ricerca indicizzata, costante) IN SEQUENZA — anche solo 2-3 richieste in
+// parallelo bastano a far ripartire i timeout sul DB.
+const PAGINA_TEAM_SEASON = 60;
 
-  try {
-    const [risTS, risCoach, risForm] = await Promise.all([
-      supabase.from("team_season").select(
+async function caricaTuttiTeamSeason() {
+  const { data: idsData, error: erroreIds } = await supabase
+    .from("team_season")
+    .select("team_season_id")
+    .order("team_season_id");
+  if (erroreIds) throw erroreIds;
+
+  const ids = (idsData || []).map((r) => r.team_season_id);
+  const risultato = [];
+  for (let i = 0; i < ids.length; i += PAGINA_TEAM_SEASON) {
+    const blocco = ids.slice(i, i + PAGINA_TEAM_SEASON);
+    const { data, error } = await supabase
+      .from("team_season")
+      .select(
         `team_season_id, team_nome,
          teams ( nome_squadra ),
          seasons ( anno ),
          player_season ( player_nome_completo, posizione,
            players ( nome, cognome ),
            player_role_map ( ruolo, overall_ruolo ) )`
-      ),
+      )
+      .in("team_season_id", blocco);
+    if (error) throw error;
+    risultato.push(...(data || []));
+  }
+  return risultato;
+}
+
+export async function caricaDati() {
+  if (!supabaseAttivo) return { ...DATI_LOCALI, fonte: "locale" };
+
+  try {
+    const [datiTeamSeason, risCoach, risForm] = await Promise.all([
+      caricaTuttiTeamSeason(),
       supabase.from("coach_season").select(`overall, coach_nome_completo, coaches ( nome, cognome )`),
       supabase.from("formations").select(
         `formation_id, nome, formation_slots ( slot_numero, ruolo, pos_x, pos_y )`
       ),
     ]);
 
-    if (risTS.error) throw risTS.error;
     if (risCoach.error) throw risCoach.error;
 
     // --- squadre-stagione ---
-    const squadre = (risTS.data || [])
+    const squadre = (datiTeamSeason || [])
       .map((ts) => {
         // nome "puro" del club (lo schema mette la stagione dentro team_nome)
         const club = ts.teams?.nome_squadra || (ts.team_nome || "").replace(/\s*\d{4}-\d{4}\s*$/, "") || "Squadra";

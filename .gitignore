@@ -18,3 +18,13 @@ dev.log
 
 # permessi locali Claude (non devono finire nel repo)
 .claude/settings.local.json
+
+# tooling locale di popolamento Supabase: contiene credenziali (.env),
+# node_modules, l'archivio HTML sorgente (SoFIFA) e gli SQL generati —
+# tutta roba pesante/sensibile che non deve stare nel repo pubblico.
+/automation/.env
+/automation/node_modules
+/automation/html
+/automation/output
+/html
+/output
