@@ -1681,7 +1681,7 @@ button {
   z-index: 900;
   max-width: min(60vw, 340px);
 }
-/* MOBILE: la fissa sparisce, appare quella inline (tra stemma e titolo) */
+/* MOBILE: la fissa sparisce, appare quella inline (sopra lo stemma) */
 .dona-inline {
   display: none;
 }

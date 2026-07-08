@@ -13,7 +13,7 @@ const LINK_DONAZIONE = "https://www.gofundme.com/";
 
 // Pillola "offrici un caffè". className distingue la collocazione:
 //  - "dona-fissa"  → in alto a destra, fissa (desktop, su ogni schermo)
-//  - "dona-inline" → nel flusso, tra stemma e titolo (mobile, in home)
+//  - "dona-inline" → nel flusso, sopra lo stemma (mobile, in home)
 export default function DonaCaffe({ className = "" }) {
   const [i, setI] = useState(0);
 

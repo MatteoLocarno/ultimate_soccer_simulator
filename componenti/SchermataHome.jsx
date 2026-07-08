@@ -7,10 +7,10 @@ export default function SchermataHome({ onAvvia }) {
   return (
     <div className="home">
       <header className="brand">
-        <Stemma size={132} className="brand-stemma" />
-        {/* Solo su mobile: tra stemma e titolo (su desktop la mostra la
+        {/* Solo su mobile: sopra lo stemma (su desktop la mostra la
             versione fissa in alto a destra nel layout). */}
         <DonaCaffe className="dona-inline" />
+        <Stemma size={132} className="brand-stemma" />
         <h1>
           Dinastia<br />
           Scudetto
