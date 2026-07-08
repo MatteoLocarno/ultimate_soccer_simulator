@@ -1632,6 +1632,68 @@ button {
 }
 
 /* ==========================================================================
+   DONA UN CAFFÈ — pillola in alto a destra (solo home), nome in blur
+   ========================================================================== */
+.dona-caffe {
+  position: fixed;
+  top: 12px;
+  right: 12px;
+  z-index: 900;
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  max-width: min(92vw, 340px);
+  font-family: var(--font-titolo);
+  font-size: 12.5px;
+  letter-spacing: 0.3px;
+  text-transform: uppercase;
+  line-height: 1.25;
+  color: var(--testo);
+  background: var(--pannello);
+  border: 2px solid var(--bordo-scuro);
+  border-radius: 99px;
+  box-shadow: var(--ombra);
+  padding: 7px 15px;
+  text-decoration: none;
+  transition: border-color 0.15s ease, transform 0.06s ease;
+}
+.dona-caffe:hover {
+  border-color: var(--oro);
+}
+.dona-caffe:active {
+  transform: translateY(1px);
+}
+.dona-nome {
+  display: inline-block;
+  color: var(--rosso);
+  font-weight: 700;
+  animation: nomeBlur 0.6s ease both;
+}
+@keyframes nomeBlur {
+  from {
+    filter: blur(7px);
+    opacity: 0;
+    transform: translateY(-2px);
+  }
+}
+
+@media (max-width: 520px) {
+  .dona-caffe {
+    font-size: 10.5px;
+    max-width: 210px;
+    white-space: normal;
+    text-align: center;
+    padding: 6px 12px;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .dona-nome {
+    animation: none !important;
+  }
+}
+
+/* ==========================================================================
    BANNER COOKIE — card arrotondata "sospesa" in basso, sopra a tutto
    ========================================================================== */
 .cookie-banner {

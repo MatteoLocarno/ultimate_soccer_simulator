@@ -1,10 +1,12 @@
 import Stemma from "@/componenti/Stemma";
 import AdSlot from "@/componenti/AdSlot";
+import DonaCaffe from "@/componenti/DonaCaffe";
 
 // Schermata iniziale: stemma + brand + regole rapide. La CTA porta al setup.
 export default function SchermataHome({ onAvvia }) {
   return (
     <div className="home">
+      <DonaCaffe />
       <header className="brand">
         <Stemma size={132} className="brand-stemma" />
         <h1>
