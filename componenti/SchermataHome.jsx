@@ -46,7 +46,7 @@ export default function SchermataHome({ onAvvia }) {
 
       {/* Solo qui in home, lontano dal pulsante: nessun rischio di click
           accidentali mentre l'utente naviga il gioco. */}
-      <AdSlot slot="0000000000" />
+      <AdSlot slot="8853641825" />
     </div>
   );
 }
