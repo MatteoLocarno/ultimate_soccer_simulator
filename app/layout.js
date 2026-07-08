@@ -24,6 +24,13 @@ export const metadata = {
     type: "website",
     locale: "it_IT",
   },
+  // Verifica proprietà del sito per AdSense: metodo "meta tag", statico e
+  // riconosciuto da Google senza bisogno di eseguire JS (a differenza dello
+  // script adsbygoogle, che next/script inietta solo lato client — il
+  // crawler di verifica non lo vede mai, causando "sito non trovato").
+  other: {
+    "google-adsense-account": ADSENSE_CLIENT,
+  },
 };
 
 export const viewport = {
@@ -38,17 +45,22 @@ export default function RootLayout({ children }) {
     <html lang="it" className={oswald.variable}>
       <body>
         {children}
-        {/* Caricato una sola volta, dopo l'idratazione: non blocca il primo
-            render del gioco. Gli annunci veri e propri (componente AdSlot)
-            sono posizionati solo nelle schermate "di pausa" (home, fine
-            stagione), mai durante draft o simulazione live, per evitare
-            click accidentali sui tanti pulsanti interattivi di quelle fasi. */}
+        {/* Caricamento reale dello script (per servire gli annunci): qui va
+            benissimo next/script afterInteractive, perché la VERIFICA di
+            proprietà è già coperta dal meta tag sopra. Un <script> nativo in
+            JSX, per contro, causerebbe errori React in console durante
+            l'idratazione (React non gestisce bene tag <script> letterali
+            nell'albero dei componenti). */}
         <Script
           async
           src={`https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=${ADSENSE_CLIENT}`}
           crossOrigin="anonymous"
           strategy="afterInteractive"
         />
+        {/* Gli annunci veri e propri (componente AdSlot) sono posizionati
+            solo nelle schermate "di pausa" (home, fine stagione), mai durante
+            draft o simulazione live, per evitare click accidentali sui tanti
+            pulsanti interattivi di quelle fasi. */}
       </body>
     </html>
   );
