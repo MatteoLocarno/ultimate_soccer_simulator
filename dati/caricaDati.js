@@ -39,16 +39,23 @@ function coloreSquadra(nome) {
 }
 
 function nomeCognome(players, nomeCompleto) {
+  // Mononimi (Kaká, Ronaldinho, Maicon, Dida…): il "nome completo" è
+  // l'identità del giocatore in tutto il gioco (player_season, ruoli...).
+  // Se è una sola parola si mostra solo quella, anche se in DB sono salvati
+  // nome/cognome anagrafici più ricchi (es. Maicon → "Maicon Sisenando").
+  const completo = (nomeCompleto || "").trim();
+  if (completo && !/\s/.test(completo)) return { nome: completo, cognome: "" };
+
   let nome, cognome;
   if (players && (players.nome || players.cognome)) {
     nome = players.nome || "";
     cognome = players.cognome || "";
   } else {
-    const parti = (nomeCompleto || "").trim().split(/\s+/);
+    const parti = completo.split(/\s+/);
     nome = parti[0] || "";
     cognome = parti.length > 1 ? parti.slice(1).join(" ") : "";
   }
-  // mononimi (Dida, Cafu, Doni…): evita "Doni Doni"
+  // mononimi senza nome_completo affidabile: evita "Doni Doni"
   if (cognome && cognome.toLowerCase() === nome.toLowerCase()) cognome = "";
   return { nome, cognome };
 }
