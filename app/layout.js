@@ -2,6 +2,8 @@ import "./globals.css";
 import { Oswald } from "next/font/google";
 import { ADSENSE_CLIENT } from "@/lib/adsense";
 import AdSenseLoader from "@/componenti/AdSenseLoader";
+import Footer from "@/componenti/Footer";
+import CookieBanner from "@/componenti/CookieBanner";
 
 // Font condensato in stile "programma di gioco" vintage, usato per titoli e
 // numeri. Auto-hostato da Next a build time: nessuna richiesta esterna.
@@ -45,14 +47,12 @@ export default function RootLayout({ children }) {
     <html lang="it" className={oswald.variable}>
       <body>
         {children}
-        {/* Carica lo script adsbygoogle SOLO se l'utente ha accettato i
-            cookie (vedi CookieBanner + lib/cookieConsent.js). La verifica di
-            proprietà del sito resta comunque valida grazie al meta tag sopra,
-            che è statico e indipendente dal consenso. Gli annunci veri e
-            propri (componente AdSlot) sono posizionati solo nelle schermate
-            "di pausa" (home, fine stagione), mai durante draft o simulazione
-            live, per evitare click accidentali sui tanti pulsanti
-            interattivi di quelle fasi. */}
+        <Footer />
+        {/* Banner consenso e loader annunci a livello globale (su ogni
+            pagina). Lo script adsbygoogle si carica SOLO dopo "Accetta"; la
+            verifica di proprietà del sito resta valida grazie al meta tag
+            sopra, statico e indipendente dal consenso. */}
+        <CookieBanner />
         <AdSenseLoader />
       </body>
     </html>

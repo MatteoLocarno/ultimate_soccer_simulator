@@ -8,7 +8,6 @@ import SchermataSetup, { COLORI } from "@/componenti/SchermataSetup";
 import SchermataDraft from "@/componenti/SchermataDraft";
 import SchermataRosa from "@/componenti/SchermataRosa";
 import SchermataStagione from "@/componenti/SchermataStagione";
-import CookieBanner from "@/componenti/CookieBanner";
 
 // Componente radice: gestisce fase, impostazioni squadra (nome/modulo/colore),
 // rosa, allenatore e capitano.
@@ -61,8 +60,7 @@ export default function Gioco() {
   const nomeEffettivo = nomeSquadra.trim() || "La tua squadra";
 
   return (
-    <>
-      <main className={`app fase-${fase}`}>
+    <main className={`app fase-${fase}`}>
       {fase === "home" && <SchermataHome onAvvia={() => setFase("setup")} />}
 
       {fase === "setup" && (
@@ -109,8 +107,6 @@ export default function Gioco() {
           onRicomincia={ricomincia}
         />
       )}
-      </main>
-      <CookieBanner />
-    </>
+    </main>
   );
 }

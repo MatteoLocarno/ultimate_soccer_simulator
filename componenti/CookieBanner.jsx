@@ -1,10 +1,12 @@
 "use client";
 
+import Link from "next/link";
 import { useConsenso } from "@/lib/cookieConsent";
 
-// Banner cookie in stile vintage, fisso in fondo. Compare finché l'utente
-// non sceglie: solo dopo "Accetta" vengono caricati script e annunci
-// AdSense (vedi AdSenseLoader e AdSlot, entrambi gated su questo consenso).
+// Banner cookie: card arrotondata "sospesa" in basso (staccata dai bordi),
+// sopra a tutto. Compare finché l'utente non sceglie: solo dopo "Accetta"
+// vengono caricati script e annunci AdSense (vedi AdSenseLoader e AdSlot,
+// entrambi condizionati a questo consenso).
 export default function CookieBanner() {
   const [consenso, setConsenso] = useConsenso();
 
@@ -12,10 +14,11 @@ export default function CookieBanner() {
 
   return (
     <div className="cookie-banner" role="dialog" aria-label="Consenso cookie">
-      <p>
-        Usiamo cookie tecnici per far funzionare il gioco e, solo se
-        acconsenti, cookie pubblicitari (Google AdSense) per mostrare
-        annunci.
+      <p className="cookie-testo">
+        Usiamo cookie tecnici per far funzionare il gioco e, solo con il tuo
+        consenso, cookie pubblicitari (Google AdSense). Dettagli nella{" "}
+        <Link href="/cookie-policy">Cookie Policy</Link> e nella{" "}
+        <Link href="/privacy">Privacy Policy</Link>.
       </p>
       <div className="cookie-azioni">
         <button className="btn btn-secondario" onClick={() => setConsenso("rifiutato")}>
