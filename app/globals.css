@@ -1634,15 +1634,11 @@ button {
 /* ==========================================================================
    DONA UN CAFFÈ — pillola in alto a destra (solo home), nome in blur
    ========================================================================== */
+/* aspetto base della pillola (comune alle due collocazioni) */
 .dona-caffe {
-  position: fixed;
-  top: 12px;
-  right: 12px;
-  z-index: 900;
   display: inline-flex;
   align-items: center;
   gap: 4px;
-  max-width: min(92vw, 340px);
   font-family: var(--font-titolo);
   font-size: 12.5px;
   letter-spacing: 0.3px;
@@ -1677,13 +1673,27 @@ button {
   }
 }
 
-@media (max-width: 520px) {
-  .dona-caffe {
-    font-size: 10.5px;
-    max-width: 210px;
-    white-space: normal;
-    text-align: center;
-    padding: 6px 12px;
+/* DESKTOP: fissa in alto a destra su ogni schermo */
+.dona-fissa {
+  position: fixed;
+  top: 12px;
+  right: 12px;
+  z-index: 900;
+  max-width: min(60vw, 340px);
+}
+/* MOBILE: la fissa sparisce, appare quella inline (tra stemma e titolo) */
+.dona-inline {
+  display: none;
+}
+@media (max-width: 640px) {
+  .dona-fissa {
+    display: none;
+  }
+  .dona-inline {
+    display: inline-flex;
+    margin: 12px auto 4px;
+    font-size: 11px;
+    padding: 6px 13px;
   }
 }
 

@@ -11,8 +11,10 @@ const LEGGENDE = [
 // TODO: sostituire con il link reale della raccolta GoFundMe quando pronto.
 const LINK_DONAZIONE = "https://www.gofundme.com/";
 
-// Pillola "offrici un caffè" in alto a destra, mostrata solo in home.
-export default function DonaCaffe() {
+// Pillola "offrici un caffè". className distingue la collocazione:
+//  - "dona-fissa"  → in alto a destra, fissa (desktop, su ogni schermo)
+//  - "dona-inline" → nel flusso, tra stemma e titolo (mobile, in home)
+export default function DonaCaffe({ className = "" }) {
   const [i, setI] = useState(0);
 
   useEffect(() => {
@@ -22,7 +24,7 @@ export default function DonaCaffe() {
 
   return (
     <a
-      className="dona-caffe"
+      className={`dona-caffe ${className}`}
       href={LINK_DONAZIONE}
       target="_blank"
       rel="noopener noreferrer"

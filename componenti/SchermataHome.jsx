@@ -6,9 +6,11 @@ import DonaCaffe from "@/componenti/DonaCaffe";
 export default function SchermataHome({ onAvvia }) {
   return (
     <div className="home">
-      <DonaCaffe />
       <header className="brand">
         <Stemma size={132} className="brand-stemma" />
+        {/* Solo su mobile: tra stemma e titolo (su desktop la mostra la
+            versione fissa in alto a destra nel layout). */}
+        <DonaCaffe className="dona-inline" />
         <h1>
           Dinastia<br />
           Scudetto

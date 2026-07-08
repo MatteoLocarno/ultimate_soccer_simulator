@@ -4,6 +4,7 @@ import { ADSENSE_CLIENT } from "@/lib/adsense";
 import AdSenseLoader from "@/componenti/AdSenseLoader";
 import Footer from "@/componenti/Footer";
 import CookieBanner from "@/componenti/CookieBanner";
+import DonaCaffe from "@/componenti/DonaCaffe";
 
 // Font condensato in stile "programma di gioco" vintage, usato per titoli e
 // numeri. Auto-hostato da Next a build time: nessuna richiesta esterna.
@@ -46,6 +47,10 @@ export default function RootLayout({ children }) {
   return (
     <html lang="it" className={oswald.variable}>
       <body>
+        {/* Pillola "dona un caffè": versione fissa in alto a destra su ogni
+            schermo (visibile su desktop; su mobile è nascosta e la mostra la
+            variante inline nella home, tra stemma e titolo). */}
+        <DonaCaffe className="dona-fissa" />
         {children}
         <Footer />
         {/* Banner consenso e loader annunci a livello globale (su ogni
