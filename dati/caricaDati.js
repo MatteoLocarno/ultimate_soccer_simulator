@@ -86,7 +86,7 @@ export const DATI_LOCALI = {
 // solo gli ID (veloce), poi si interroga a blocchi filtrando per ID
 // (ricerca indicizzata, costante) IN SEQUENZA — anche solo 2-3 richieste in
 // parallelo bastano a far ripartire i timeout sul DB.
-const PAGINA_TEAM_SEASON = 60;
+const PAGINA_TEAM_SEASON = 40;
 
 async function caricaTuttiTeamSeason() {
   const { data: idsData, error: erroreIds } = await supabase
