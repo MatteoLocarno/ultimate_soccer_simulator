@@ -15,10 +15,10 @@ const SKIP = [
 // avere 30-45 giocatori: senza raggruppare sarebbe un muro illeggibile,
 // specie su mobile).
 const REPARTI = [
-  { macro: "P", nome: "Portieri" },
-  { macro: "D", nome: "Difensori" },
-  { macro: "C", nome: "Centrocampisti" },
-  { macro: "A", nome: "Attaccanti" },
+  { macro: "P", nome: "Portieri", icona: "🧤" },
+  { macro: "D", nome: "Difensori", icona: "🛡️" },
+  { macro: "C", nome: "Centrocampisti", icona: "⚙️" },
+  { macro: "A", nome: "Attaccanti", icona: "⚡" },
 ];
 
 function raggruppaPerReparto(candidati) {
@@ -75,8 +75,8 @@ export default function SchermataDraft({ slot, squadre, allenatori: listaAllenat
   const [allenatoreScelto, setAllenatoreScelto] = useState(null);
   const [skipUsati, setSkipUsati] = useState([]); // tipi di skip già usati (tutto il draft)
   // Reparti chiusi "a ventaglio" nella lista candidati (per macro-ruolo):
-  // di default tutti aperti, si chiudono/aprono al tocco del titolo.
-  const [repartiChiusi, setRepartiChiusi] = useState(() => new Set());
+  // di default tutti chiusi, si aprono/chiudono al tocco del titolo.
+  const [repartiChiusi, setRepartiChiusi] = useState(() => new Set(REPARTI.map((r) => r.macro)));
 
   function toggleReparto(macro) {
     setRepartiChiusi((prev) => {
@@ -210,21 +210,27 @@ export default function SchermataDraft({ slot, squadre, allenatori: listaAllenat
                         onClick={() => toggleReparto(r.macro)}
                         aria-expanded={aperto}
                       >
-                        <span className="reparto-freccia">{aperto ? "▾" : "▸"}</span>
-                        {r.nome} <span>{r.giocatori.length}</span>
+                        <span className="reparto-tit-icona">{r.icona}</span>
+                        <span className="reparto-tit-nome">{r.nome}</span>
+                        <span className="reparto-tit-conta">{r.giocatori.length}</span>
+                        <span className={`reparto-freccia ${aperto ? "aperto" : ""}`}>›</span>
                       </button>
-                      {aperto && r.giocatori.map((c) => (
-                        <button key={c._id} className="candidato candidato-compatto" onClick={() => scegliGiocatore(c)}>
-                          <span className="cand-ruolo-tag">{c.ruolo}</span>
-                          <span className="cand-info">
-                            <span className="nome-g">{c.nome} {c.cognome}</span>
-                            <span className="ruolo-g">
-                              {c.provenienza.squadra} {c.provenienza.anno}
-                            </span>
-                          </span>
-                          <span className="freccia">＋</span>
-                        </button>
-                      ))}
+                      {aperto && (
+                        <div className="reparto-candidati-corpo">
+                          {r.giocatori.map((c) => (
+                            <button key={c._id} className="candidato candidato-compatto" onClick={() => scegliGiocatore(c)}>
+                              <span className="cand-ruolo-tag">{c.ruolo}</span>
+                              <span className="cand-info">
+                                <span className="nome-g">{c.nome} {c.cognome}</span>
+                                <span className="ruolo-g">
+                                  {c.provenienza.squadra} {c.provenienza.anno}
+                                </span>
+                              </span>
+                              <span className="freccia">＋</span>
+                            </button>
+                          ))}
+                        </div>
+                      )}
                     </div>
                   );
                 })}

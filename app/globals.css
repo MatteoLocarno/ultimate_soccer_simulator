@@ -243,20 +243,54 @@ button {
   font-variant-numeric: tabular-nums;
 }
 
-.attesa-curiosita {
-  max-width: 380px;
-  min-height: 54px;
+/* Figurina Panini della curiosità: cornice a doppio bordo come le altre
+   card "da collezione" del sito, foto (o icona) tonda in stile timbro,
+   testo sotto. */
+.attesa-figurina {
+  width: 100%;
+  max-width: 360px;
+  min-height: 168px;
   display: flex;
+  flex-direction: column;
   align-items: center;
-  justify-content: center;
-  gap: 6px;
+  gap: 10px;
+  margin-top: 6px;
+  padding: 18px 20px 16px;
+  background: var(--pannello);
+  border: 3px double var(--bordo-scuro);
+  border-radius: var(--raggio);
+  box-shadow: var(--ombra);
+  animation: attesaCuriositaBlur 0.5s ease both;
+}
+.attesa-figurina-foto {
+  flex-shrink: 0;
+  width: 74px;
+  height: 74px;
+  border-radius: 50%;
+  overflow: hidden;
+  display: grid;
+  place-items: center;
+  background: var(--pannello-2);
+  border: 2px solid var(--oro);
+  box-shadow: 0 0 0 3px var(--pannello), 0 0 0 5px var(--bordo-scuro);
+}
+.attesa-figurina-foto img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  object-position: top center;
+  filter: sepia(0.55) contrast(1.05) saturate(0.85);
+}
+.attesa-figurina-icona {
+  font-size: 32px;
+  filter: sepia(0.6) contrast(0.95) brightness(0.95);
+}
+.attesa-figurina-testo {
+  margin: 0;
   font-size: 13.5px;
   line-height: 1.5;
   color: var(--testo-soft);
-  animation: attesaCuriositaBlur 0.6s ease both;
-}
-.attesa-pallone {
-  flex-shrink: 0;
+  text-align: center;
 }
 @keyframes attesaCuriositaBlur {
   from {
@@ -267,7 +301,7 @@ button {
 }
 @media (prefers-reduced-motion: reduce) {
   .attesa-segmento.pieno,
-  .attesa-curiosita {
+  .attesa-figurina {
     animation: none !important;
   }
 }
@@ -282,9 +316,17 @@ button {
   .attesa-barra {
     max-width: 100%;
   }
-  .attesa-curiosita {
+  .attesa-figurina {
+    max-width: 300px;
+    min-height: 150px;
+    padding: 16px 16px 14px;
+  }
+  .attesa-figurina-foto {
+    width: 62px;
+    height: 62px;
+  }
+  .attesa-figurina-testo {
     font-size: 12.5px;
-    max-width: 320px;
   }
 }
 .home .pallone {
@@ -480,36 +522,80 @@ button {
 }
 .reparto-candidati {
   display: grid;
-  gap: 6px;
+  gap: 8px;
 }
 .reparto-candidati-tit {
   font-family: var(--font-titolo);
-  font-size: 12px;
-  letter-spacing: 2px;
-  text-transform: uppercase;
-  color: var(--testo-soft);
-  padding: 4px 2px;
-  display: flex;
-  align-items: baseline;
-  gap: 6px;
   width: 100%;
-  background: none;
-  border: none;
+  display: flex;
+  align-items: center;
+  gap: 9px;
+  padding: 10px 14px;
+  background: var(--pannello);
+  border: 2px solid var(--bordo-scuro);
+  border-radius: var(--raggio);
+  box-shadow: var(--ombra);
   cursor: pointer;
   -webkit-tap-highlight-color: transparent;
+  transition: transform 0.05s ease, box-shadow 0.05s ease, background 0.12s;
 }
-.reparto-candidati-tit span {
-  font-size: 10px;
-  color: var(--rosso);
+.reparto-candidati-tit:active {
+  transform: translate(3px, 3px);
+  box-shadow: 0 0 0 rgba(0, 0, 0, 0);
+}
+.reparto-candidati.aperto .reparto-candidati-tit {
+  background: var(--pannello-2);
+}
+.reparto-tit-icona {
+  font-size: 15px;
+  flex-shrink: 0;
+}
+.reparto-tit-nome {
+  flex: 1;
+  text-align: left;
+  font-size: 12.5px;
+  letter-spacing: 2px;
+  text-transform: uppercase;
+  color: var(--testo);
+  font-weight: 600;
+}
+.reparto-tit-conta {
+  font-size: 11px;
   font-weight: 700;
+  color: var(--pannello);
+  background: var(--rosso);
+  padding: 2px 8px;
+  border-radius: 10px;
+  line-height: 1.5;
 }
 .reparto-freccia {
-  font-size: 10px;
+  font-size: 17px;
+  font-weight: 700;
   color: var(--testo-soft);
-  width: 10px;
+  width: 12px;
+  text-align: center;
+  transition: transform 0.2s ease, color 0.2s ease;
 }
-.reparto-candidati.chiuso .reparto-candidati-tit {
-  opacity: 0.75;
+.reparto-freccia.aperto {
+  transform: rotate(90deg);
+  color: var(--rosso);
+}
+.reparto-candidati-corpo {
+  display: grid;
+  gap: 6px;
+  padding: 2px 2px 4px;
+  animation: repartoEspandi 0.18s ease both;
+}
+@keyframes repartoEspandi {
+  from {
+    opacity: 0;
+    transform: translateY(-6px);
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .reparto-candidati-corpo {
+    animation: none !important;
+  }
 }
 .candidato-compatto {
   padding: 8px 10px;
