@@ -3,8 +3,9 @@
 // slot già scelti mostrano il COGNOME (mai l'overall, nascosto fino al
 // reveal). Gli slot ancora liberi il cui ruolo è tra i candidati proposti in
 // quel momento pulsano (indicano dove potrebbe atterrare la scelta). Il
-// ruolo sul pallino è quello DETTAGLIATO dello slot (es. "TD"), non il
-// macro-ruolo.
+// ruolo sul pallino è quello DETTAGLIATO: dello slot se ancora vuoto, del
+// giocatore scelto se occupato (un ED finito in uno slot CC per mancanza di
+// alternative va mostrato come ED, non come CC).
 
 function stato(indice, pick, slotEvidenziati) {
   if (pick) return "pieno";
@@ -35,7 +36,7 @@ export default function FormazioneDraft({
               className={`slot-pos slot-${st}`}
               style={{ left: `${s.x}%`, top: `${s.y}%` }}
             >
-              <span className="slot-disc">{s.ruolo}</span>
+              <span className="slot-disc">{pick ? pick.giocatore.ruolo : s.ruolo}</span>
               {pick && <span className="slot-lbl">{cognome(pick)}</span>}
             </div>
           );
@@ -52,7 +53,7 @@ export default function FormazioneDraft({
                 const st = stato(s.indice, pick, slotEvidenziati);
                 return (
                   <div key={s.indice} className={`rd-chip slot-${st}`}>
-                    <span className="slot-disc">{s.ruolo}</span>
+                    <span className="slot-disc">{pick ? pick.giocatore.ruolo : s.ruolo}</span>
                     {pick && <span className="rd-nome">{cognome(pick)}</span>}
                   </div>
                 );

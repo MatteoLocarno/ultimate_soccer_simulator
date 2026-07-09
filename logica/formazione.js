@@ -6,8 +6,9 @@
 //  locali come fallback e le utility comuni (nomi ruolo, macro-ruolo, slot).
 //
 //  RUOLI dettagliati (enum DB): POR, TD, TS, DC, ED, ES, CDC, CC, TRQ, AD, AS,
-//  ATT. MACRO-ruoli del gioco: P (portiere), D (difensore), C (centrocampista),
-//  A (attaccante). La panchina usa i macro-ruoli.
+//  ATT. MACRO-ruoli del gioco: P (portiere), D (difensore), C (centrocampista,
+//  include anche ED/ES/CDC/TRQ), A (attaccante, include anche AD/AS). La
+//  panchina usa i macro-ruoli.
 // ============================================================================
 
 // Nomi leggibili (macro + dettagliati).
@@ -29,7 +30,8 @@ const MACRO = {
   POR: "P", GK: "P", P: "P",
   TD: "D", TS: "D", DC: "D", DCD: "D", DCS: "D", DD: "D", DS: "D", D: "D",
   CC: "C", CDC: "C", MED: "C", REG: "C", MEZ: "C", ED: "C", ES: "C", C: "C",
-  AD: "A", AS: "A", TRQ: "A", ATT: "A", SP: "A", PC: "A", SS: "A", A: "A",
+  AD: "A", AS: "A", ATT: "A", SP: "A", PC: "A", SS: "A", A: "A",
+  TRQ: "C", COC: "C",
 };
 
 export function macroRuolo(r) {
@@ -38,8 +40,8 @@ export function macroRuolo(r) {
   if (MACRO[s]) return MACRO[s];
   if (s.startsWith("PORT")) return "P";
   if (s.startsWith("DIF") || s.startsWith("TER")) return "D";
-  if (s.startsWith("CEN") || s.startsWith("MED") || s.startsWith("EST")) return "C";
-  if (s.startsWith("ATT") || s.startsWith("ALA") || s.startsWith("PUN") || s.startsWith("TREQ")) return "A";
+  if (s.startsWith("CEN") || s.startsWith("MED") || s.startsWith("EST") || s.startsWith("TREQ")) return "C";
+  if (s.startsWith("ATT") || s.startsWith("ALA") || s.startsWith("PUN")) return "A";
   return null;
 }
 
