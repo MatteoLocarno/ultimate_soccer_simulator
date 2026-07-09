@@ -1308,22 +1308,25 @@ button {
   flex-direction: column;
   align-items: center;
   gap: 3px;
-  width: 70px;
+  /* scala con la larghezza del campo: nelle linee affollate (5 in mezzo,
+     moduli a 3 dietro...) uno slot a larghezza fissa si sovrapponeva col
+     vicino sui telefoni più stretti. */
+  width: clamp(46px, 17vw, 70px);
 }
 .slot-disc {
-  width: 30px;
-  height: 30px;
+  width: clamp(24px, 8vw, 30px);
+  height: clamp(24px, 8vw, 30px);
   border-radius: 50%;
   display: grid;
   place-items: center;
   font-family: var(--font-titolo);
   font-weight: 700;
-  font-size: 10.5px;
+  font-size: clamp(9px, 2.8vw, 10.5px);
   letter-spacing: -0.3px;
 }
 .slot-lbl {
   font-family: var(--font-titolo);
-  font-size: 10px;
+  font-size: clamp(8.5px, 2.6vw, 10px);
   text-transform: uppercase;
   letter-spacing: 0.3px;
   padding: 1px 5px;
@@ -1331,7 +1334,7 @@ button {
   background: var(--pannello);
   border: 1px solid #2d2417;
   color: var(--testo);
-  max-width: 72px;
+  max-width: clamp(50px, 17vw, 72px);
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
@@ -1779,8 +1782,20 @@ button {
 .campo-schieramento .token {
   position: absolute;
   transform: translate(-50%, -50%);
-  width: 66px;
+  /* scala con la larghezza del campo (non un valore fisso): nelle linee
+     affollate (5 in mezzo al campo, moduli a 3 dietro...) i token a
+     larghezza fissa si sovrapponevano sui telefoni più stretti. */
+  width: clamp(42px, 15.5vw, 66px);
   animation: spuntaTok 0.45s ease both;
+}
+.campo-schieramento .tok-ovr {
+  width: clamp(30px, 10vw, 42px);
+  height: clamp(30px, 10vw, 42px);
+  font-size: clamp(12px, 3.6vw, 18px);
+}
+.campo-schieramento .tok-nome {
+  font-size: clamp(9px, 2.6vw, 11px);
+  padding: 2px 4px;
 }
 .campo-mini .token {
   width: 48px;

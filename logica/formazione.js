@@ -84,6 +84,25 @@ export const MODULI = [
       pos("ATT", 35, 21), pos("ATT", 65, 21),
     ],
   },
+  {
+    id: "4-2-3-1", nome: "4-2-3-1", descrizione: "4 Dif · 3 Cen · 3 Att",
+    posizioni: [
+      pos("POR", 50, 88),
+      pos("TS", 14, 70), pos("DC", 37, 72), pos("DC", 63, 72), pos("TD", 86, 70),
+      pos("CDC", 35, 55), pos("CDC", 65, 55),
+      pos("AS", 16, 35), pos("TRQ", 50, 31), pos("AD", 84, 35),
+      pos("ATT", 50, 14),
+    ],
+  },
+  {
+    id: "3-4-3", nome: "3-4-3", descrizione: "3 Dif · 4 Cen · 3 Att",
+    posizioni: [
+      pos("POR", 50, 88),
+      pos("DC", 28, 73), pos("DC", 50, 75), pos("DC", 72, 73),
+      pos("ES", 9, 51), pos("CC", 37, 48), pos("CC", 63, 48), pos("ED", 91, 51),
+      pos("AS", 22, 20), pos("ATT", 50, 15), pos("AD", 78, 20),
+    ],
+  },
 ];
 
 export const MODULO_DEFAULT = MODULI[0];
