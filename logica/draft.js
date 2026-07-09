@@ -1,19 +1,21 @@
 // ============================================================================
 //  LOGICA DEL DRAFT
 // ----------------------------------------------------------------------------
-//  Ad ogni giro viene estratta una squadra storica a caso e si mostrano fino
-//  a 10 suoi giocatori DISPONIBILI (ruoli misti, ognuno col proprio ruolo
-//  vero) a OVERALL NASCOSTO. Si sceglie liberamente uno dei 10: va a
-//  occupare automaticamente il primo slot libero del suo ruolo (prima i
-//  titolari, poi la panchina). Quando gli slot di un ruolo sono tutti pieni,
-//  quel ruolo non viene più proposto tra i candidati. Mostrati in ordine
+//  Ad ogni giro viene estratta una squadra storica a caso e si mostra TUTTA
+//  la sua rosa DISPONIBILE (ruoli misti, ognuno col proprio ruolo vero) a
+//  OVERALL NASCOSTO. Si sceglie liberamente chi si vuole: va a occupare
+//  automaticamente il primo slot libero del suo ruolo (prima i titolari,
+//  poi la panchina). Quando gli slot di un ruolo sono tutti pieni, quel
+//  ruolo non viene più proposto tra i candidati. Mostrati in ordine
 //  alfabetico (l'ordine non rivela la forza). Niente doppioni, nemmeno tra
 //  stagioni diverse.
 //
-//  3 SKIP (uno a testa, per tutto il draft) ripescano i 10 con scope diverso:
-//    - "tutto"    : mix di giocatori dall'intero database
-//    - "stagione" : solo da una stagione (stessa annata, più club)
-//    - "club"     : un'altra squadra a caso (nuovo tentativo del default)
+//  3 SKIP (uno a testa, per tutto il draft) ripescano con scope diverso:
+//    - "tutto"    : mix di giocatori dall'intero database (10 candidati a
+//                   bande percentili, il pool è troppo grande per mostrarlo
+//                   tutto)
+//    - "stagione" : solo da una stagione, più club (idem, 10 a bande)
+//    - "club"     : un'altra squadra a caso, rosa completa come il default
 // ============================================================================
 
 import { SQUADRE } from "@/dati/squadre";
@@ -116,22 +118,22 @@ function selezionaBande(pool) {
 // disponibili (nei ruoli ancora aperti).
 function estraiDaSquadraCasuale(idsUsati, personeUsate, squadre, ruoliEsauriti) {
   const provate = new Set();
-  let migliore = null;
   for (let i = 0; i < TENTATIVI_SQUADRA && provate.size < squadre.length; i++) {
     const restanti = squadre.filter((s) => !provate.has(s.id));
     if (!restanti.length) break;
     const squadra = casuale(restanti);
     provate.add(squadra.id);
     const pool = poolSquadraSingola(squadra, idsUsati, personeUsate, ruoliEsauriti);
-    if (pool.length < MINIMO_CANDIDATI_SQUADRA) continue;
-    if (!migliore || pool.length > migliore.pool.length) migliore = { squadra, pool };
-    if (pool.length >= 10) break; // abbastanza, fermati qui
+    if (pool.length >= MINIMO_CANDIDATI_SQUADRA) return { squadra, pool };
   }
-  return migliore;
+  return null;
 }
 
-// Estrae i candidati (ruoli misti). scope: {tipo: "squadra"|"tutto"|"stagione"|"club"}.
+// Estrae i candidati. scope: {tipo: "squadra"|"tutto"|"stagione"|"club"}.
 // ruoliEsauriti: Set di macro-ruoli (P/D/C/A) senza più slot liberi.
+// Per "squadra"/"club" torna la rosa COMPLETA disponibile di una squadra
+// (ruoli misti, ordine alfabetico); per "tutto"/"stagione" un pool troppo
+// grande da mostrare intero, quindi 10 candidati a bande percentili.
 export function estraiCandidati(idsUsati, personeUsate = new Set(), squadre = SQUADRE, scope = { tipo: "squadra" }, ruoliEsauriti = null) {
   if (scope?.tipo === "tutto") {
     return { candidati: selezionaBande(poolLibero(idsUsati, personeUsate, squadre, ruoliEsauriti)) };
@@ -141,13 +143,13 @@ export function estraiCandidati(idsUsati, personeUsate = new Set(), squadre = SQ
     return { candidati: selezionaBande(pool) };
   }
 
-  // default ("squadra") e skip "club": una squadra sola, ruoli misti.
+  // default ("squadra") e skip "club": rosa completa di una squadra sola.
   const trovata = estraiDaSquadraCasuale(idsUsati, personeUsate, squadre, ruoliEsauriti);
   if (!trovata) {
     // rete di sicurezza: nessuna squadra ha abbastanza giocatori disponibili
     return { candidati: selezionaBande(poolLibero(idsUsati, personeUsate, squadre, ruoliEsauriti)) };
   }
-  return { candidati: selezionaBande(trovata.pool), squadra: trovata.squadra };
+  return { candidati: [...trovata.pool].sort(ordinaAlfabetico), squadra: trovata.squadra };
 }
 
 export function estraiAllenatori(n = 4, allenatori = ALLENATORI) {

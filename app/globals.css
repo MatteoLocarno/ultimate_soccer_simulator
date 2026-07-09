@@ -473,6 +473,71 @@ button {
   font-weight: 700;
 }
 
+/* Rosa completa nel draft (30-45 giocatori): raggruppata per reparto, righe
+   compatte con tag di ruolo dettagliato, per stare bene anche su mobile. */
+.lista-candidati-raggruppata {
+  gap: 18px;
+}
+.reparto-candidati {
+  display: grid;
+  gap: 6px;
+}
+.reparto-candidati-tit {
+  font-family: var(--font-titolo);
+  font-size: 12px;
+  letter-spacing: 2px;
+  text-transform: uppercase;
+  color: var(--testo-soft);
+  padding: 0 2px 2px;
+  display: flex;
+  align-items: baseline;
+  gap: 6px;
+}
+.reparto-candidati-tit span {
+  font-size: 10px;
+  color: var(--rosso);
+  font-weight: 700;
+}
+.candidato-compatto {
+  padding: 8px 10px;
+  gap: 8px;
+}
+.candidato-compatto .nome-g {
+  font-size: 14.5px;
+}
+.candidato-compatto .ruolo-g {
+  font-size: 10.5px;
+}
+.candidato-compatto .freccia {
+  font-size: 18px;
+}
+.cand-ruolo-tag {
+  flex-shrink: 0;
+  font-family: var(--font-titolo);
+  font-weight: 700;
+  font-size: 10.5px;
+  letter-spacing: 0.2px;
+  color: var(--pannello);
+  background: var(--verde-scuro, #2f4a2b);
+  border-radius: 4px;
+  padding: 3px 6px;
+  min-width: 30px;
+  text-align: center;
+}
+@media (max-width: 640px) {
+  .candidato-compatto {
+    padding: 7px 8px;
+  }
+  .candidato-compatto .nome-g {
+    font-size: 13.5px;
+  }
+  .cand-ruolo-tag {
+    font-size: 10px;
+    padding: 2px 5px;
+    min-width: 26px;
+  }
+}
+
 /* mini riepilogo rosa durante il draft */
 .mini-rosa {
   margin-top: 20px;
@@ -1154,7 +1219,8 @@ button {
   place-items: center;
   font-family: var(--font-titolo);
   font-weight: 700;
-  font-size: 13px;
+  font-size: 10.5px;
+  letter-spacing: -0.3px;
 }
 .slot-lbl {
   font-family: var(--font-titolo);

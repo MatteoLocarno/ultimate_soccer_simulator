@@ -11,6 +11,23 @@ const SKIP = [
   { tipo: "club", etichetta: "Stesso club", icona: "🛡️" },
 ];
 
+// Ordine e nomi dei reparti per raggruppare la rosa completa (che può
+// avere 30-45 giocatori: senza raggruppare sarebbe un muro illeggibile,
+// specie su mobile).
+const REPARTI = [
+  { macro: "P", nome: "Portieri" },
+  { macro: "D", nome: "Difensori" },
+  { macro: "C", nome: "Centrocampisti" },
+  { macro: "A", nome: "Attaccanti" },
+];
+
+function raggruppaPerReparto(candidati) {
+  return REPARTI.map((r) => ({
+    ...r,
+    giocatori: candidati.filter((c) => macroRuolo(c.ruolo) === r.macro),
+  })).filter((r) => r.giocatori.length > 0);
+}
+
 // Macro-ruoli (P/D/C/A) che non hanno più nessuno slot libero: non vanno
 // più proposti tra i candidati (non ci sarebbe dove metterli).
 function calcolaRuoliEsauriti(slot, assegnazioni) {
@@ -75,7 +92,7 @@ export default function SchermataDraft({ slot, squadre, allenatori: listaAllenat
   const idsUsati = () => new Set(assegnazioni.filter(Boolean).map((a) => a.giocatore._id));
   const personeUsate = () => new Set(assegnazioni.filter(Boolean).map((a) => chiavePersona(a.giocatore)));
 
-  // Nuovi candidati ad ogni assegnazione: 10 giocatori (ruoli misti) dalla
+  // Nuovi candidati ad ogni assegnazione: rosa completa (ruoli misti) della
   // stessa squadra storica (scope "squadra", default); allenatori in fase
   // coach.
   useEffect(() => {
@@ -162,8 +179,8 @@ export default function SchermataDraft({ slot, squadre, allenatori: listaAllenat
             <>
               <p className="istruzione">
                 {squadraEstratta
-                  ? <>10 candidati da <b>{squadraEstratta.squadra} {squadraEstratta.anno}</b>, ognuno col suo ruolo.</>
-                  : "10 candidati, ognuno col suo ruolo."}{" "}
+                  ? <>Rosa completa di <b>{squadraEstratta.squadra} {squadraEstratta.anno}</b>.</>
+                  : "Rosa completa disponibile."}{" "}
                 Scegli chi vuoi: occuperà il primo posto libero del suo ruolo.{" "}
                 <b>L&apos;overall resta nascosto.</b>
               </p>
@@ -180,17 +197,25 @@ export default function SchermataDraft({ slot, squadre, allenatori: listaAllenat
                   </button>
                 ))}
               </div>
-              <div className="lista-candidati">
-                {candidati.map((c) => (
-                  <button key={c._id} className="candidato" onClick={() => scegliGiocatore(c)}>
-                    <span className="cand-info">
-                      <span className="nome-g">{c.nome} {c.cognome}</span>
-                      <span className="ruolo-g">
-                        {NOMI_RUOLO[c.ruolo] || c.ruolo} · {c.provenienza.squadra} {c.provenienza.anno}
-                      </span>
-                    </span>
-                    <span className="freccia">＋</span>
-                  </button>
+              <div className="lista-candidati lista-candidati-raggruppata">
+                {raggruppaPerReparto(candidati).map((r) => (
+                  <div className="reparto-candidati" key={r.macro}>
+                    <div className="reparto-candidati-tit">
+                      {r.nome} <span>{r.giocatori.length}</span>
+                    </div>
+                    {r.giocatori.map((c) => (
+                      <button key={c._id} className="candidato candidato-compatto" onClick={() => scegliGiocatore(c)}>
+                        <span className="cand-ruolo-tag">{c.ruolo}</span>
+                        <span className="cand-info">
+                          <span className="nome-g">{c.nome} {c.cognome}</span>
+                          <span className="ruolo-g">
+                            {c.provenienza.squadra} {c.provenienza.anno}
+                          </span>
+                        </span>
+                        <span className="freccia">＋</span>
+                      </button>
+                    ))}
+                  </div>
                 ))}
               </div>
             </>

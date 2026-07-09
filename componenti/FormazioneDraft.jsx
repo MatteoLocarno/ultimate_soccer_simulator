@@ -2,9 +2,8 @@
 // posizioni del modulo scelto) + i 7 panchinari + l'allenatore. Gli slot già
 // scelti mostrano il COGNOME (mai l'overall, nascosto fino al reveal). Gli
 // slot ancora liberi il cui ruolo è tra i candidati proposti in quel
-// momento pulsano (indicano dove potrebbe atterrare la scelta).
-
-import { macroRuolo } from "@/logica/formazione";
+// momento pulsano (indicano dove potrebbe atterrare la scelta). Il ruolo sul
+// pallino è quello DETTAGLIATO dello slot (es. "TD"), non il macro-ruolo.
 
 function stato(indice, pick, slotEvidenziati) {
   if (pick) return "pieno";
@@ -35,7 +34,7 @@ export default function FormazioneDraft({
               className={`slot-pos slot-${st}`}
               style={{ left: `${s.x}%`, top: `${s.y}%` }}
             >
-              <span className="slot-disc">{macroRuolo(s.ruolo)}</span>
+              <span className="slot-disc">{s.ruolo}</span>
               {pick && <span className="slot-lbl">{cognome(pick)}</span>}
             </div>
           );
