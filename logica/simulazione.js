@@ -11,7 +11,7 @@ import { SQUADRE } from "@/dati/squadre";
 import { macroRuolo } from "@/logica/formazione";
 
 const VANTAGGIO_CASA = 0.3;
-const GOL_BASE = 1.45;
+const GOL_BASE = 1.35;
 const BONUS_ALL_BASE = 0.8;
 
 // Le rose delle squadre storiche arrivano dall'archivio SoFIFA e possono
@@ -82,7 +82,19 @@ export function costruisciCampionato(
     })),
   };
 
-  const mescolate = [...squadreDB].sort(() => Math.random() - 0.5).slice(0, 19);
+  // Massimo una squadra-stagione per club reale (niente due Milan, due
+  // Juve...): si raggruppa per nome squadra e se ne pesca una a caso per
+  // ogni club, poi si scelgono 19 club a caso tra quelli disponibili.
+  const perClub = new Map();
+  for (const s of squadreDB) {
+    if (!perClub.has(s.squadra)) perClub.set(s.squadra, []);
+    perClub.get(s.squadra).push(s);
+  }
+  const club = [...perClub.keys()].sort(() => Math.random() - 0.5).slice(0, 19);
+  const mescolate = club.map((c) => {
+    const opzioni = perClub.get(c);
+    return opzioni[Math.floor(Math.random() * opzioni.length)];
+  });
   const avversarie = mescolate.map((s) => ({
     id: s.id,
     nome: `${s.squadra} ${s.anno}`.trim(),
@@ -131,7 +143,10 @@ function simulaPartita(casa, ospite) {
 // sono più distribuiti tra i giocatori offensivi/creativi.
 const PESO_GOL = { A: 1.0, C: 0.25, D: 0.1, P: 0.01 };
 const PESO_ASSIST = { A: 0.7, C: 1.0, D: 0.28, P: 0.03 };
-const BONUS_RANGO_GOL = [7, 2.5, 1.3];
+// Con un vero fuoriclasse (overall alto) in rosa, un bonus troppo aggressivo
+// (7x) porta a stagioni-sfondone da 35-40 gol: testato su 60 stagioni
+// simulate, 4.5x tiene la media sui 17 gol e il massimo osservato sotto i 25.
+const BONUS_RANGO_GOL = [4.5, 2, 1.3];
 const BONUS_RANGO_ASSIST = [3, 1.8, 1.2];
 
 // Rango (1°, 2°, 3°… per overall) di ogni giocatore nel proprio reparto,
