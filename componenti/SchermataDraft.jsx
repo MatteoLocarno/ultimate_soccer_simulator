@@ -29,11 +29,18 @@ function calcolaRuoliEsauriti(slot, assegnazioni) {
 }
 
 // Primo slot libero per il ruolo del giocatore scelto: titolare prima,
-// panchina dopo (nell'ordine con cui compaiono nel modulo).
+// panchina dopo. Si preferisce uno slot con lo STESSO ruolo esatto (es. un
+// esterno sinistro va nello slot ES, non in un ED solo perché libero prima:
+// altrimenti un'ala sinistra finirebbe disegnata a destra) e solo se non ce
+// n'è si ripiega su un qualsiasi slot dello stesso reparto (macro-ruolo).
 function trovaSlotLibero(slot, assegnazioni, ruolo) {
+  const r = String(ruolo).toUpperCase();
   const macro = macroRuolo(ruolo);
-  const candidati = slot.filter((s) => macroRuolo(s.ruolo) === macro && !assegnazioni[s.indice]);
-  return candidati.find((s) => s.tipo === "titolare") || candidati[0] || null;
+  const aperti = slot.filter((s) => !assegnazioni[s.indice]);
+  const esatti = aperti.filter((s) => String(s.ruolo).toUpperCase() === r);
+  const compatibili = aperti.filter((s) => macroRuolo(s.ruolo) === macro);
+  const pool = esatti.length ? esatti : compatibili;
+  return pool.find((s) => s.tipo === "titolare") || pool[0] || null;
 }
 
 export default function SchermataDraft({ slot, squadre, allenatori: listaAllenatori, onCompletato }) {
