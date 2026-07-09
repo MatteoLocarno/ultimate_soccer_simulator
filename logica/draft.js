@@ -7,8 +7,11 @@
 //  occupare automaticamente il primo slot libero del suo ruolo (solo
 //  titolari, per ora: panchina rimossa). Quando gli slot di un ruolo sono
 //  tutti pieni, quel ruolo non viene più proposto tra i candidati (si apre
-//  il reparto successivo). Mostrati in ordine alfabetico (l'ordine non
-//  rivela la forza). Niente doppioni, nemmeno tra stagioni diverse.
+//  il reparto successivo). "Ruolo vero" non è sempre il migliore in
+//  assoluto: se quel ruolo esatto non ha più slot ma il giocatore ha anche
+//  un altro ruolo buono con posto libero, si propone in quello — mai un
+//  ruolo ormai esaurito. Mostrati in ordine alfabetico (l'ordine non rivela
+//  la forza). Niente doppioni, nemmeno tra stagioni diverse.
 //
 //  3 SKIP (uno a testa, per tutto il draft) ripescano con scope diverso:
 //    - "tutto"    : mix di giocatori dall'intero database (10 candidati a
@@ -33,14 +36,24 @@ function ordinaAlfabetico(a, b) { return chiave(a).localeCompare(chiave(b), "it"
 export function idGiocatore(squadra, g) { return `${squadra.id}__${g.nome}_${g.cognome}`; }
 export function chiavePersona(g) { return `${g.nome}|${g.cognome}`; }
 
-// Ruolo "vero" del giocatore (quello col miglior overall tra i suoi) e
-// relativo overall.
-function ruoloReale(g) {
-  return g.ruoli.reduce((a, b) => (b.overall > a.overall ? b : a));
+// Ruolo "vero" del giocatore: il migliore per overall tra i suoi ruoli reali
+// PER CUI C'È ANCORA UNO SLOT ESATTO LIBERO in questa formazione (es. se
+// l'ED è già esaurito ma il giocatore ha anche un buon CC, si propone come
+// CC, non come ED — mai un ruolo che non ha più posto). Se nessuno dei suoi
+// ruoli ha più uno slot esatto, si ripiega sul migliore in assoluto: verrà
+// comunque proposto solo se il suo reparto (macro-ruolo) ha ancora posto, e
+// finirà in uno slot compatibile ma non identico.
+function ruoloReale(g, ruoliDettagliatiAperti) {
+  const ordinati = [...g.ruoli].sort((a, b) => b.overall - a.overall);
+  if (ruoliDettagliatiAperti) {
+    const conSlotEsatto = ordinati.find((r) => ruoliDettagliatiAperti.has(String(r.ruolo).toUpperCase()));
+    if (conSlotEsatto) return conSlotEsatto;
+  }
+  return ordinati[0];
 }
 
-function candidatoDa(squadra, g) {
-  const migliore = ruoloReale(g);
+function candidatoDa(squadra, g, ruoliDettagliatiAperti) {
+  const migliore = ruoloReale(g, ruoliDettagliatiAperti);
   return {
     nome: g.nome, cognome: g.cognome, ruolo: migliore.ruolo,
     overall: Math.round(migliore.overall), _id: idGiocatore(squadra, g),
@@ -62,11 +75,11 @@ function ruoloProponibile(ruolo, ruoliEsauriti) {
 
 // Pool di tutti i candidati disponibili (ruoli misti) mescolando tutte le
 // squadre — usato per lo skip "tutto" e come rete di sicurezza.
-function poolLibero(idsUsati, personeUsate, squadre, ruoliEsauriti) {
+function poolLibero(idsUsati, personeUsate, squadre, ruoliEsauriti, ruoliDettagliatiAperti) {
   const pool = [];
   for (const s of squadre) {
     for (const g of giocatoriDisponibili(s, idsUsati, personeUsate)) {
-      const c = candidatoDa(s, g);
+      const c = candidatoDa(s, g, ruoliDettagliatiAperti);
       if (c.overall >= OVERALL_MINIMO && ruoloProponibile(c.ruolo, ruoliEsauriti)) pool.push(c);
     }
   }
@@ -74,10 +87,10 @@ function poolLibero(idsUsati, personeUsate, squadre, ruoliEsauriti) {
 }
 
 // Pool di UNA squadra, ruoli misti, filtrato sui ruoli ancora disponibili.
-function poolSquadraSingola(squadra, idsUsati, personeUsate, ruoliEsauriti) {
+function poolSquadraSingola(squadra, idsUsati, personeUsate, ruoliEsauriti, ruoliDettagliatiAperti) {
   const pool = [];
   for (const g of giocatoriDisponibili(squadra, idsUsati, personeUsate)) {
-    const c = candidatoDa(squadra, g);
+    const c = candidatoDa(squadra, g, ruoliDettagliatiAperti);
     if (c.overall >= OVERALL_MINIMO && ruoloProponibile(c.ruolo, ruoliEsauriti)) pool.push(c);
   }
   return pool;
@@ -117,14 +130,14 @@ function selezionaBande(pool) {
 
 // Prova squadre a caso finché non ne trova una con abbastanza giocatori
 // disponibili (nei ruoli ancora aperti).
-function estraiDaSquadraCasuale(idsUsati, personeUsate, squadre, ruoliEsauriti) {
+function estraiDaSquadraCasuale(idsUsati, personeUsate, squadre, ruoliEsauriti, ruoliDettagliatiAperti) {
   const provate = new Set();
   for (let i = 0; i < TENTATIVI_SQUADRA && provate.size < squadre.length; i++) {
     const restanti = squadre.filter((s) => !provate.has(s.id));
     if (!restanti.length) break;
     const squadra = casuale(restanti);
     provate.add(squadra.id);
-    const pool = poolSquadraSingola(squadra, idsUsati, personeUsate, ruoliEsauriti);
+    const pool = poolSquadraSingola(squadra, idsUsati, personeUsate, ruoliEsauriti, ruoliDettagliatiAperti);
     if (pool.length >= MINIMO_CANDIDATI_SQUADRA) return { squadra, pool };
   }
   return null;
@@ -132,23 +145,27 @@ function estraiDaSquadraCasuale(idsUsati, personeUsate, squadre, ruoliEsauriti) 
 
 // Estrae i candidati. scope: {tipo: "squadra"|"tutto"|"stagione"|"club"}.
 // ruoliEsauriti: Set di macro-ruoli (P/D/C/A) senza più slot liberi.
+// ruoliDettagliatiAperti: Set di ruoli dettagliati (es. "ED", "CDC"...) con
+// almeno uno slot esatto ancora libero in questa formazione — usato per
+// proporre ogni giocatore nel suo ruolo vero SOLO se c'è ancora posto per
+// quel ruolo esatto, altrimenti nel migliore dei suoi ruoli che ce l'ha.
 // Per "squadra"/"club" torna la rosa COMPLETA disponibile di una squadra
 // (ruoli misti, ordine alfabetico); per "tutto"/"stagione" un pool troppo
 // grande da mostrare intero, quindi 10 candidati a bande percentili.
-export function estraiCandidati(idsUsati, personeUsate = new Set(), squadre = SQUADRE, scope = { tipo: "squadra" }, ruoliEsauriti = null) {
+export function estraiCandidati(idsUsati, personeUsate = new Set(), squadre = SQUADRE, scope = { tipo: "squadra" }, ruoliEsauriti = null, ruoliDettagliatiAperti = null) {
   if (scope?.tipo === "tutto") {
-    return { candidati: selezionaBande(poolLibero(idsUsati, personeUsate, squadre, ruoliEsauriti)) };
+    return { candidati: selezionaBande(poolLibero(idsUsati, personeUsate, squadre, ruoliEsauriti, ruoliDettagliatiAperti)) };
   }
   if (scope?.tipo === "stagione") {
-    const pool = applicaScope(poolLibero(idsUsati, personeUsate, squadre, ruoliEsauriti), scope);
+    const pool = applicaScope(poolLibero(idsUsati, personeUsate, squadre, ruoliEsauriti, ruoliDettagliatiAperti), scope);
     return { candidati: selezionaBande(pool) };
   }
 
   // default ("squadra") e skip "club": rosa completa di una squadra sola.
-  const trovata = estraiDaSquadraCasuale(idsUsati, personeUsate, squadre, ruoliEsauriti);
+  const trovata = estraiDaSquadraCasuale(idsUsati, personeUsate, squadre, ruoliEsauriti, ruoliDettagliatiAperti);
   if (!trovata) {
     // rete di sicurezza: nessuna squadra ha abbastanza giocatori disponibili
-    return { candidati: selezionaBande(poolLibero(idsUsati, personeUsate, squadre, ruoliEsauriti)) };
+    return { candidati: selezionaBande(poolLibero(idsUsati, personeUsate, squadre, ruoliEsauriti, ruoliDettagliatiAperti)) };
   }
   return { candidati: [...trovata.pool].sort(ordinaAlfabetico), squadra: trovata.squadra };
 }

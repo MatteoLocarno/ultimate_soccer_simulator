@@ -45,6 +45,18 @@ function calcolaRuoliEsauriti(slot, assegnazioni) {
   return esauriti;
 }
 
+// Ruoli dettagliati (es. "ED", "CDC"...) con almeno uno slot ESATTO ancora
+// libero in questa formazione: usato per proporre ogni giocatore nel suo
+// ruolo vero solo se c'è ancora posto per quel ruolo esatto (altrimenti nel
+// migliore dei suoi altri ruoli che ce l'ha — vedi ruoloReale in draft.js).
+function calcolaRuoliDettagliatiAperti(slot, assegnazioni) {
+  const aperti = new Set();
+  for (const s of slot) {
+    if (!assegnazioni[s.indice]) aperti.add(String(s.ruolo).toUpperCase());
+  }
+  return aperti;
+}
+
 // Primo slot libero per il ruolo del giocatore scelto. Priorità in ordine:
 //  1. titolare con lo stesso ruolo ESATTO (un'ala sinistra nello slot AS,
 //     non in un AD solo perché libero prima)
@@ -100,7 +112,8 @@ export default function SchermataDraft({ slot, squadre, allenatori: listaAllenat
   useEffect(() => {
     if (faseGiocatori) {
       const ruoliEsauriti = calcolaRuoliEsauriti(slot, assegnazioni);
-      const { candidati, squadra } = estraiCandidati(idsUsati(), personeUsate(), squadre, { tipo: "squadra" }, ruoliEsauriti);
+      const ruoliDettagliatiAperti = calcolaRuoliDettagliatiAperti(slot, assegnazioni);
+      const { candidati, squadra } = estraiCandidati(idsUsati(), personeUsate(), squadre, { tipo: "squadra" }, ruoliEsauriti, ruoliDettagliatiAperti);
       setCandidati(candidati);
       setSquadraEstratta(squadra || null);
     } else if (faseAllenatore) {
@@ -112,7 +125,8 @@ export default function SchermataDraft({ slot, squadre, allenatori: listaAllenat
     if (skipUsati.includes(tipo) || !faseGiocatori) return;
     setSkipUsati((s) => [...s, tipo]);
     const ruoliEsauriti = calcolaRuoliEsauriti(slot, assegnazioni);
-    const { candidati, squadra } = estraiCandidati(idsUsati(), personeUsate(), squadre, { tipo }, ruoliEsauriti);
+    const ruoliDettagliatiAperti = calcolaRuoliDettagliatiAperti(slot, assegnazioni);
+    const { candidati, squadra } = estraiCandidati(idsUsati(), personeUsate(), squadre, { tipo }, ruoliEsauriti, ruoliDettagliatiAperti);
     setCandidati(candidati);
     setSquadraEstratta(squadra || null);
   }
