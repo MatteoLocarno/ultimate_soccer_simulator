@@ -28,19 +28,29 @@ function calcolaRuoliEsauriti(slot, assegnazioni) {
   return esauriti;
 }
 
-// Primo slot libero per il ruolo del giocatore scelto: titolare prima,
-// panchina dopo. Si preferisce uno slot con lo STESSO ruolo esatto (es. un
-// esterno sinistro va nello slot ES, non in un ED solo perché libero prima:
-// altrimenti un'ala sinistra finirebbe disegnata a destra) e solo se non ce
-// n'è si ripiega su un qualsiasi slot dello stesso reparto (macro-ruolo).
+// Primo slot libero per il ruolo del giocatore scelto. Priorità in ordine:
+//  1. titolare con lo stesso ruolo ESATTO (un'ala sinistra nello slot AS,
+//     non in un AD solo perché libero prima)
+//  2. titolare dello stesso reparto (macro-ruolo) se non c'è un esatto
+//  3. panchina con ruolo esatto
+//  4. panchina dello stesso reparto
+// "Titolare" viene sempre prima di "panchina", indipendentemente
+// dall'esattezza del ruolo: altrimenti un giocatore può finire diretto in
+// panchina (che usa solo macro-ruoli tipo "D") anche con un titolare dello
+// stesso reparto ancora libero, solo perché quello "combacia" più
+// letteralmente.
 function trovaSlotLibero(slot, assegnazioni, ruolo) {
   const r = String(ruolo).toUpperCase();
   const macro = macroRuolo(ruolo);
   const aperti = slot.filter((s) => !assegnazioni[s.indice]);
-  const esatti = aperti.filter((s) => String(s.ruolo).toUpperCase() === r);
-  const compatibili = aperti.filter((s) => macroRuolo(s.ruolo) === macro);
-  const pool = esatti.length ? esatti : compatibili;
-  return pool.find((s) => s.tipo === "titolare") || pool[0] || null;
+  for (const tipo of ["titolare", "panchina"]) {
+    const delTipo = aperti.filter((s) => s.tipo === tipo);
+    const esatto = delTipo.find((s) => String(s.ruolo).toUpperCase() === r);
+    if (esatto) return esatto;
+    const compatibile = delTipo.find((s) => macroRuolo(s.ruolo) === macro);
+    if (compatibile) return compatibile;
+  }
+  return null;
 }
 
 export default function SchermataDraft({ slot, squadre, allenatori: listaAllenatori, onCompletato }) {
