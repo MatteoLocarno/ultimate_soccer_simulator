@@ -19,14 +19,27 @@ import { SQUADRE } from "@/dati/squadre";
 import { ALLENATORI } from "@/dati/allenatori";
 import { MODULI, macroRuolo, descriviModulo } from "@/logica/formazione";
 
-// --- colori squadra (il DB non li contiene): match per nome -----------------
+// --- colori squadra (il DB non li contiene): match per nome, sui colori
+// sociali reali di ogni club (non un colore a caso). Copre tutti i club
+// storicamente presenti nel database; PALETTE_FALLBACK resta solo per
+// l'evenienza rarissima di un nome squadra non riconosciuto.
 const COLORI_SQUADRE = [
   ["milan", "#fb0a18"], ["juventus", "#111111"], ["inter", "#0b1f8f"],
   ["napoli", "#12a0d7"], ["roma", "#8e1b2e"], ["lazio", "#88c7eb"],
   ["sampdoria", "#0a3d8f"], ["parma", "#f6c800"], ["fiorentina", "#7b2bbd"],
-  ["verona", "#1b5e9b"], ["torino", "#7a1420"], ["atalanta", "#1b6ec2"],
-  ["bologna", "#9c1f2e"], ["genoa", "#a01c2b"], ["cagliari", "#9c1f3a"],
-  ["udinese", "#1c1c1c"],
+  ["hellas verona", "#f4c81a"], ["verona", "#f4c81a"], ["torino", "#7a1420"],
+  ["atalanta", "#1b6ec2"], ["bologna", "#9c1f2e"], ["genoa", "#a01c2b"],
+  ["cagliari", "#9c1f3a"], ["udinese", "#1c1c1c"],
+  ["chievo", "#f4c81a"], ["sassuolo", "#0a8a4b"], ["empoli", "#0f5faa"],
+  ["palermo", "#d6006c"], ["catania", "#c8102e"], ["lecce", "#f4c81a"],
+  ["siena", "#1a1a1a"], ["livorno", "#7d2248"], ["cesena", "#2b2b2b"],
+  ["crotone", "#c8102e"], ["frosinone", "#1c4e9c"], ["monza", "#e2001a"],
+  ["reggina", "#7a1f3d"], ["salernitana", "#7a1420"], ["spal", "#1f7fc1"],
+  ["spezia", "#1c2b4a"], ["bari", "#c8102e"], ["benevento", "#c8a415"],
+  ["brescia", "#0f5fa8"], ["como", "#0b3d91"], ["cremonese", "#9c2430"],
+  ["pescara", "#1f9fe0"], ["venezia", "#f57c20"], ["ascoli", "#1a1a1a"],
+  ["carpi", "#c8102e"], ["messina", "#d4a017"], ["novara", "#1f5faa"],
+  ["pisa", "#0d3b66"],
 ];
 const PALETTE_FALLBACK = ["#9c2a24", "#3f6b3a", "#0b1f8f", "#a8761a", "#7b2bbd", "#12a0d7", "#8e1b2e"];
 

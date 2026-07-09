@@ -1,9 +1,15 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { NOMI_RUOLO, macroRuolo } from "@/logica/formazione";
 import { estraiCandidati, estraiAllenatori, chiavePersona } from "@/logica/draft";
+import { STEMMI } from "@/dati/stemmi";
 import FormazioneDraft from "@/componenti/FormazioneDraft";
+
+// Durata della transizione "sto cercando la prossima squadra": abbastanza
+// lunga da percepirsi come un vero passaggio (prima il cambio era istantaneo
+// e disorientava), non così lunga da rallentare il ritmo del draft.
+const DURATA_TRANSIZIONE = 550;
 
 const SKIP = [
   { tipo: "tutto", etichetta: "Cambia tutto", icona: "🔄" },
@@ -89,6 +95,22 @@ export default function SchermataDraft({ slot, squadre, allenatori: listaAllenat
   // Reparti chiusi "a ventaglio" nella lista candidati (per macro-ruolo):
   // di default tutti chiusi, si aprono/chiudono al tocco del titolo.
   const [repartiChiusi, setRepartiChiusi] = useState(() => new Set(REPARTI.map((r) => r.macro)));
+  // Vera durante il breve passaggio tra una scelta e la prossima squadra
+  // proposta: la lista candidati lascia il posto a un'animazione, invece di
+  // cambiare di scatto.
+  const [inTransizione, setInTransizione] = useState(false);
+  const timeoutTransizione = useRef(null);
+  useEffect(() => () => clearTimeout(timeoutTransizione.current), []);
+
+  function applicaConTransizione(nuoviCandidati, nuovaSquadra) {
+    setInTransizione(true);
+    clearTimeout(timeoutTransizione.current);
+    timeoutTransizione.current = setTimeout(() => {
+      setCandidati(nuoviCandidati);
+      setSquadraEstratta(nuovaSquadra || null);
+      setInTransizione(false);
+    }, DURATA_TRANSIZIONE);
+  }
 
   function toggleReparto(macro) {
     setRepartiChiusi((prev) => {
@@ -113,25 +135,24 @@ export default function SchermataDraft({ slot, squadre, allenatori: listaAllenat
     if (faseGiocatori) {
       const ruoliEsauriti = calcolaRuoliEsauriti(slot, assegnazioni);
       const ruoliDettagliatiAperti = calcolaRuoliDettagliatiAperti(slot, assegnazioni);
-      const { candidati, squadra } = estraiCandidati(idsUsati(), personeUsate(), squadre, { tipo: "squadra" }, ruoliEsauriti, ruoliDettagliatiAperti);
-      setCandidati(candidati);
-      setSquadraEstratta(squadra || null);
+      const { candidati: nuovi, squadra } = estraiCandidati(idsUsati(), personeUsate(), squadre, { tipo: "squadra" }, ruoliEsauriti, ruoliDettagliatiAperti);
+      applicaConTransizione(nuovi, squadra);
     } else if (faseAllenatore) {
       setAllenatori(estraiAllenatori(4, listaAllenatori));
     }
   }, [assegnazioni, allenatoreScelto]); // eslint-disable-line react-hooks/exhaustive-deps
 
   function usaSkip(tipo) {
-    if (skipUsati.includes(tipo) || !faseGiocatori) return;
+    if (skipUsati.includes(tipo) || !faseGiocatori || inTransizione) return;
     setSkipUsati((s) => [...s, tipo]);
     const ruoliEsauriti = calcolaRuoliEsauriti(slot, assegnazioni);
     const ruoliDettagliatiAperti = calcolaRuoliDettagliatiAperti(slot, assegnazioni);
-    const { candidati, squadra } = estraiCandidati(idsUsati(), personeUsate(), squadre, { tipo }, ruoliEsauriti, ruoliDettagliatiAperti);
-    setCandidati(candidati);
-    setSquadraEstratta(squadra || null);
+    const { candidati: nuovi, squadra } = estraiCandidati(idsUsati(), personeUsate(), squadre, { tipo }, ruoliEsauriti, ruoliDettagliatiAperti);
+    applicaConTransizione(nuovi, squadra);
   }
 
   function scegliGiocatore(c) {
+    if (inTransizione) return;
     const slotLibero = trovaSlotLibero(slot, assegnazioni, c.ruolo);
     if (!slotLibero) return; // di sicurezza: non dovrebbe succedere
     setAssegnazioni((prev) => {
@@ -193,19 +214,43 @@ export default function SchermataDraft({ slot, squadre, allenatori: listaAllenat
         <div className="draft-scelta">
           {faseGiocatori && (
             <>
-              <p className="istruzione">
-                {squadraEstratta
-                  ? <>Rosa completa di <b>{squadraEstratta.squadra} {squadraEstratta.anno}</b>.</>
-                  : "Rosa completa disponibile."}{" "}
-                Scegli chi vuoi: occuperà il primo posto libero del suo ruolo.{" "}
-                <b>L&apos;overall resta nascosto.</b>
-              </p>
+              {squadraEstratta ? (
+                <div className="squadra-corrente" key={`${squadraEstratta.squadra}-${squadraEstratta.anno}`}>
+                  <div className="squadra-corrente-stemma">
+                    {STEMMI[squadraEstratta.squadra] ? (
+                      <img
+                        src={STEMMI[squadraEstratta.squadra]}
+                        alt={squadraEstratta.squadra}
+                        loading="lazy"
+                        referrerPolicy="no-referrer"
+                        onError={(e) => { e.currentTarget.style.display = "none"; e.currentTarget.nextSibling.style.display = "block"; }}
+                      />
+                    ) : null}
+                    <span
+                      className="squadra-corrente-pallino"
+                      style={{ background: squadraEstratta.colore, display: STEMMI[squadraEstratta.squadra] ? "none" : "block" }}
+                    />
+                  </div>
+                  <div className="squadra-corrente-testo">
+                    <div className="squadra-corrente-nome">{squadraEstratta.squadra}</div>
+                    <div className="squadra-corrente-anno">{squadraEstratta.anno}</div>
+                  </div>
+                </div>
+              ) : (
+                <div className="squadra-corrente squadra-corrente-mix">
+                  <div className="squadra-corrente-testo">
+                    <div className="squadra-corrente-nome">Mix di giocatori</div>
+                    <div className="squadra-corrente-anno">da tutto il database</div>
+                  </div>
+                </div>
+              )}
+
               <div className="skip-bar">
                 {SKIP.map((s) => (
                   <button
                     key={s.tipo}
                     className="skip-btn"
-                    disabled={skipUsati.includes(s.tipo)}
+                    disabled={skipUsati.includes(s.tipo) || inTransizione}
                     onClick={() => usaSkip(s.tipo)}
                     title={`Ripesca i candidati: ${s.etichetta}`}
                   >
@@ -213,42 +258,50 @@ export default function SchermataDraft({ slot, squadre, allenatori: listaAllenat
                   </button>
                 ))}
               </div>
-              <div className="lista-candidati lista-candidati-raggruppata">
-                {raggruppaPerReparto(candidati).map((r) => {
-                  const aperto = !repartiChiusi.has(r.macro);
-                  return (
-                    <div className={`reparto-candidati ${aperto ? "aperto" : "chiuso"}`} key={r.macro}>
-                      <button
-                        type="button"
-                        className="reparto-candidati-tit"
-                        onClick={() => toggleReparto(r.macro)}
-                        aria-expanded={aperto}
-                      >
-                        <span className="reparto-tit-icona">{r.icona}</span>
-                        <span className="reparto-tit-nome">{r.nome}</span>
-                        <span className="reparto-tit-conta">{r.giocatori.length}</span>
-                        <span className={`reparto-freccia ${aperto ? "aperto" : ""}`}>›</span>
-                      </button>
-                      {aperto && (
-                        <div className="reparto-candidati-corpo">
-                          {r.giocatori.map((c) => (
-                            <button key={c._id} className="candidato candidato-compatto" onClick={() => scegliGiocatore(c)}>
-                              <span className="cand-ruolo-tag">{c.ruolo}</span>
-                              <span className="cand-info">
-                                <span className="nome-g">{c.nome} {c.cognome}</span>
-                                <span className="ruolo-g">
-                                  {c.provenienza.squadra} {c.provenienza.anno}
+
+              {inTransizione ? (
+                <div className="draft-transizione">
+                  <span className="draft-transizione-pallone">⚽</span>
+                  <span className="draft-transizione-testo">Sto cercando la prossima squadra…</span>
+                </div>
+              ) : (
+                <div className="lista-candidati lista-candidati-raggruppata">
+                  {raggruppaPerReparto(candidati).map((r) => {
+                    const aperto = !repartiChiusi.has(r.macro);
+                    return (
+                      <div className={`reparto-candidati ${aperto ? "aperto" : "chiuso"}`} key={r.macro}>
+                        <button
+                          type="button"
+                          className="reparto-candidati-tit"
+                          onClick={() => toggleReparto(r.macro)}
+                          aria-expanded={aperto}
+                        >
+                          <span className="reparto-tit-icona">{r.icona}</span>
+                          <span className="reparto-tit-nome">{r.nome}</span>
+                          <span className="reparto-tit-conta">{r.giocatori.length}</span>
+                          <span className={`reparto-freccia ${aperto ? "aperto" : ""}`}>›</span>
+                        </button>
+                        {aperto && (
+                          <div className="reparto-candidati-corpo">
+                            {r.giocatori.map((c) => (
+                              <button key={c._id} className="candidato candidato-compatto" onClick={() => scegliGiocatore(c)}>
+                                <span className="cand-ruolo-tag">{c.ruolo}</span>
+                                <span className="cand-info">
+                                  <span className="nome-g">{c.nome} {c.cognome}</span>
+                                  <span className="ruolo-g">
+                                    {c.provenienza.squadra} {c.provenienza.anno}
+                                  </span>
                                 </span>
-                              </span>
-                              <span className="freccia">＋</span>
-                            </button>
-                          ))}
-                        </div>
-                      )}
-                    </div>
-                  );
-                })}
-              </div>
+                                <span className="freccia">＋</span>
+                              </button>
+                            ))}
+                          </div>
+                        )}
+                      </div>
+                    );
+                  })}
+                </div>
+              )}
             </>
           )}
 

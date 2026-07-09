@@ -13,6 +13,14 @@ export const COLORI = [
   "#a8761a", // oro
   "#8e1b2e", // granata
   "#d4711f", // arancio
+  "#f4c81a", // giallo
+  "#0a8a4b", // verde bosco
+  "#d6006c", // magenta
+  "#1c2b4a", // blu notte
+  "#7d2248", // amaranto
+  "#c8102e", // rosso vivo
+  "#1f7fc1", // azzurro
+  "#4a2e1a", // marrone
 ];
 
 // Schermata di creazione squadra: nome, modulo e colore. Da qui parte il draft.
