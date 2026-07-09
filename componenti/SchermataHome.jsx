@@ -1,13 +1,35 @@
+"use client";
+
+import { useEffect, useState } from "react";
 import Stemma from "@/componenti/Stemma";
 import AdSlot from "@/componenti/AdSlot";
+import DonaCaffe from "@/componenti/DonaCaffe";
+
+// Non si mostra il banner "dona un caffè" alla primissima visita (chi
+// arriva per la prima volta deve prima capire il gioco): solo dalla
+// seconda visita in poi, o dopo aver ricominciato una partita.
+const CHIAVE_VISITATO = "ds_visitato";
 
 // Schermata iniziale: stemma + brand + regole rapide. La CTA porta al setup.
-// Il widget "dona un caffè" è quello fisso globale (app/layout.js): resta
-// fuori dal flusso e non sposta mai stemma/titolo, né su desktop né mobile.
 export default function SchermataHome({ onAvvia }) {
+  const [mostraDona, setMostraDona] = useState(false);
+
+  useEffect(() => {
+    try {
+      if (localStorage.getItem(CHIAVE_VISITATO)) {
+        setMostraDona(true);
+      } else {
+        localStorage.setItem(CHIAVE_VISITATO, "1");
+      }
+    } catch {
+      // localStorage non disponibile (modalità privata, ecc.): niente banner.
+    }
+  }, []);
+
   return (
     <div className="home">
       <header className="brand">
+        {mostraDona && <DonaCaffe className="dona-banner" />}
         <Stemma size={132} className="brand-stemma" />
         <h1>
           Dinastia<br />

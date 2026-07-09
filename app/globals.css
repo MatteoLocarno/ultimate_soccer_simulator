@@ -1692,6 +1692,28 @@ button {
   }
 }
 
+/* Banner in home, nel flusso normale, subito sopra lo stemma (solo dalla
+   seconda visita/partita in poi — vedi SchermataHome). A differenza della
+   pillola fissa, qui è previsto lo spazio: non serve stare fuori flusso. */
+.dona-banner {
+  display: flex;
+  width: 100%;
+  max-width: 360px;
+  justify-content: center;
+  margin: 0 auto 14px;
+  border-radius: 14px;
+}
+@media (max-width: 640px) {
+  .home {
+    padding-top: 10px;
+  }
+  .dona-banner {
+    margin: 0 auto 12px;
+    font-size: 11px;
+    padding: 8px 14px;
+  }
+}
+
 @media (prefers-reduced-motion: reduce) {
   .dona-nome {
     animation: none !important;
