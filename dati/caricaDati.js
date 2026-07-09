@@ -116,21 +116,64 @@ async function caricaTuttiTeamSeason() {
   return risultato;
 }
 
-export async function caricaDati() {
-  if (!supabaseAttivo) return { ...DATI_LOCALI, fonte: "locale" };
+// Allenatori + formazioni: dati piccoli, veloci da scaricare. Separati dalle
+// squadre (lente, centinaia di righe) così la schermata di setup — che
+// serve solo modulo e colore — non deve aspettare il caricamento di tutte
+// le squadre-stagione per mostrare le formazioni vere del DB.
+export async function caricaAllenatoriEFormazioni() {
+  if (!supabaseAttivo) return { allenatori: DATI_LOCALI.allenatori, formazioni: DATI_LOCALI.formazioni, fonte: "locale" };
 
   try {
-    const [datiTeamSeason, risCoach, risForm] = await Promise.all([
-      caricaTuttiTeamSeason(),
+    const [risCoach, risForm] = await Promise.all([
       supabase.from("coach_season").select(`overall, coach_nome_completo, coaches ( nome, cognome )`),
       supabase.from("formations").select(
         `formation_id, nome, formation_slots ( slot_numero, ruolo, pos_x, pos_y )`
       ),
     ]);
-
     if (risCoach.error) throw risCoach.error;
 
-    // --- squadre-stagione ---
+    const mappaAll = new Map();
+    for (const cs of risCoach.data || []) {
+      const { nome, cognome } = nomeCognome(cs.coaches, cs.coach_nome_completo);
+      const overall = Math.round(Number(cs.overall));
+      if (!Number.isFinite(overall) || (!nome && !cognome)) continue;
+      const k = `${nome}|${cognome}`;
+      const e = mappaAll.get(k);
+      if (!e || overall > e.overall) mappaAll.set(k, { nome, cognome, overall });
+    }
+    const allenatoriDB = [...mappaAll.values()];
+
+    let formazioni = (risForm?.data || [])
+      .map((f) => {
+        const slots = [...(f.formation_slots || [])].sort((a, b) => a.slot_numero - b.slot_numero);
+        // pos_x 0-100 → 10-90 (margini laterali); pos_y 5(porta)-78(attacco) →
+        // 86(basso)-22(alto), con margini sopra/sotto per non toccare i bordi.
+        const posizioni = slots.map((s) => ({
+          ruolo: String(s.ruolo).toUpperCase(),
+          x: 10 + (Number(s.pos_x) / 100) * 80,
+          y: 90 - Number(s.pos_y) * 0.84,
+        }));
+        return { id: String(f.formation_id), nome: f.nome, posizioni, descrizione: descriviModulo(posizioni) };
+      })
+      .filter((f) => f.posizioni.length === 11);
+    if (formazioni.length === 0) formazioni = MODULI;
+
+    const allenatori = allenatoriDB.length >= 4 ? allenatoriDB : DATI_LOCALI.allenatori;
+    return { allenatori, formazioni, fonte: allenatoriDB.length >= 4 ? "supabase" : "locale" };
+  } catch (e) {
+    console.warn("Allenatori/formazioni: Supabase non disponibile, uso i dati locali:", e?.message || e);
+    return { allenatori: DATI_LOCALI.allenatori, formazioni: DATI_LOCALI.formazioni, fonte: "locale" };
+  }
+}
+
+// Squadre-stagione: centinaia di righe, il caricamento più lento. Separato
+// da allenatori/formazioni (vedi sopra).
+export async function caricaSquadre() {
+  if (!supabaseAttivo) return { squadre: DATI_LOCALI.squadre, fonte: "locale" };
+
+  try {
+    const datiTeamSeason = await caricaTuttiTeamSeason();
+
     const squadre = (datiTeamSeason || [])
       .map((ts) => {
         // nome "puro" del club (lo schema mette la stagione dentro team_nome)
@@ -161,43 +204,25 @@ export async function caricaDati() {
       })
       .filter((s) => s.giocatori.length >= 11);
 
-    // --- allenatori (deduplicati per persona, overall migliore) ---
-    const mappaAll = new Map();
-    for (const cs of risCoach.data || []) {
-      const { nome, cognome } = nomeCognome(cs.coaches, cs.coach_nome_completo);
-      const overall = Math.round(Number(cs.overall));
-      if (!Number.isFinite(overall) || (!nome && !cognome)) continue;
-      const k = `${nome}|${cognome}`;
-      const e = mappaAll.get(k);
-      if (!e || overall > e.overall) mappaAll.set(k, { nome, cognome, overall });
-    }
-    const allenatori = [...mappaAll.values()];
-
-    // --- formazioni dal DB (con coordinate) ---
-    let formazioni = (risForm?.data || [])
-      .map((f) => {
-        const slots = [...(f.formation_slots || [])].sort((a, b) => a.slot_numero - b.slot_numero);
-        // pos_x 0-100 → 10-90 (margini laterali); pos_y 5(porta)-78(attacco) →
-        // 86(basso)-22(alto), con margini sopra/sotto per non toccare i bordi.
-        const posizioni = slots.map((s) => ({
-          ruolo: String(s.ruolo).toUpperCase(),
-          x: 10 + (Number(s.pos_x) / 100) * 80,
-          y: 90 - Number(s.pos_y) * 0.84,
-        }));
-        return { id: String(f.formation_id), nome: f.nome, posizioni, descrizione: descriviModulo(posizioni) };
-      })
-      .filter((f) => f.posizioni.length === 11);
-    if (formazioni.length === 0) formazioni = MODULI;
-
-    if (squadre.length < 20 || allenatori.length < 4) {
-      console.warn(`Supabase: dati insufficienti (${squadre.length} squadre, ${allenatori.length} allenatori) — uso i dati locali.`);
-      return { ...DATI_LOCALI, formazioni, fonte: "locale" };
+    if (squadre.length < 20) {
+      console.warn(`Supabase: dati insufficienti (${squadre.length} squadre) — uso i dati locali.`);
+      return { squadre: DATI_LOCALI.squadre, fonte: "locale" };
     }
 
-    console.info(`Dati da Supabase: ${squadre.length} squadre, ${allenatori.length} allenatori, ${formazioni.length} formazioni.`);
-    return { squadre, allenatori, formazioni, fonte: "supabase" };
+    console.info(`Squadre da Supabase: ${squadre.length}.`);
+    return { squadre, fonte: "supabase" };
   } catch (e) {
-    console.warn("Supabase non disponibile, uso i dati locali:", e?.message || e);
-    return { ...DATI_LOCALI, fonte: "locale" };
+    console.warn("Squadre: Supabase non disponibile, uso i dati locali:", e?.message || e);
+    return { squadre: DATI_LOCALI.squadre, fonte: "locale" };
   }
+}
+
+// Compatibilità: carica tutto insieme (usato solo se serve un unico blocco).
+export async function caricaDati() {
+  const [{ allenatori, formazioni }, { squadre }] = await Promise.all([
+    caricaAllenatoriEFormazioni(),
+    caricaSquadre(),
+  ]);
+  const fonte = squadre === DATI_LOCALI.squadre ? "locale" : "supabase";
+  return { squadre, allenatori, formazioni, fonte };
 }

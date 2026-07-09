@@ -2,7 +2,7 @@
 
 import { useEffect, useMemo, useState } from "react";
 import { costruisciSlot } from "@/logica/formazione";
-import { caricaDati, DATI_LOCALI } from "@/dati/caricaDati";
+import { caricaAllenatoriEFormazioni, caricaSquadre, DATI_LOCALI } from "@/dati/caricaDati";
 import SchermataHome from "@/componenti/SchermataHome";
 import SchermataSetup, { COLORI } from "@/componenti/SchermataSetup";
 import SchermataDraft from "@/componenti/SchermataDraft";
@@ -29,11 +29,16 @@ export default function Gioco() {
 
   useEffect(() => {
     let attivo = true;
-    caricaDati().then((d) => {
+    // Allenatori/formazioni: piccoli, arrivano subito (servono già in setup).
+    caricaAllenatoriEFormazioni().then((d) => {
       if (!attivo || !d) return;
-      setDati(d);
-      // se le formazioni cambiano (DB), allinea il modulo di default
+      setDati((prev) => ({ ...prev, allenatori: d.allenatori, formazioni: d.formazioni }));
       if (d.formazioni?.length) setModulo(d.formazioni[0]);
+    });
+    // Squadre: centinaia di righe, più lente (servono solo al draft).
+    caricaSquadre().then((d) => {
+      if (!attivo || !d) return;
+      setDati((prev) => ({ ...prev, squadre: d.squadre }));
     });
     return () => {
       attivo = false;
