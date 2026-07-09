@@ -5,11 +5,12 @@ import { NOMI_RUOLO, macroRuolo } from "@/logica/formazione";
 import { estraiCandidati, estraiAllenatori, chiavePersona } from "@/logica/draft";
 import { STEMMI } from "@/dati/stemmi";
 import FormazioneDraft from "@/componenti/FormazioneDraft";
+import PalloneStorico from "@/componenti/PalloneStorico";
 
-// Durata della transizione "sto cercando la prossima squadra": abbastanza
-// lunga da percepirsi come un vero passaggio (prima il cambio era istantaneo
-// e disorientava), non così lunga da rallentare il ritmo del draft.
-const DURATA_TRANSIZIONE = 550;
+// Durata della transizione "sto cercando la prossima squadra": rallentata
+// apposta (il calcolo vero è istantaneo) per dare il tempo di percepire il
+// passaggio a una nuova squadra invece di uno scatto secco.
+const DURATA_TRANSIZIONE = 1300;
 
 const SKIP = [
   { tipo: "tutto", etichetta: "Cambia tutto", icona: "🔄" },
@@ -261,7 +262,8 @@ export default function SchermataDraft({ slot, squadre, allenatori: listaAllenat
 
               {inTransizione ? (
                 <div className="draft-transizione">
-                  <span className="draft-transizione-pallone">⚽</span>
+                  <PalloneStorico size={40} className="draft-transizione-pallone" />
+                  <div className="draft-transizione-ombra" />
                   <span className="draft-transizione-testo">Sto cercando la prossima squadra…</span>
                 </div>
               ) : (

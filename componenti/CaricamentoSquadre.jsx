@@ -104,7 +104,9 @@ export default function CaricamentoSquadre({ fatti = 0, totali = 0 }) {
   const [fotoRotte, setFotoRotte] = useState(() => new Set());
 
   useEffect(() => {
-    const t = setInterval(() => setI((x) => (x + 1) % ordine.length), 3800);
+    // Abbastanza lento da poter leggere per intero anche le curiosità più
+    // lunghe prima che cambino (prima 3.8s era troppo poco).
+    const t = setInterval(() => setI((x) => (x + 1) % ordine.length), 6500);
     return () => clearInterval(t);
   }, [ordine]);
 
