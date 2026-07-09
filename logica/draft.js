@@ -2,21 +2,26 @@
 //  LOGICA DEL DRAFT
 // ----------------------------------------------------------------------------
 //  Per ogni ruolo (in ordine, dal portiere alla punta della formazione scelta)
-//  vengono proposti 10 candidati a OVERALL NASCOSTO, con bande percentili:
-//    3 dalla fascia bassa (peggior 20%), 5 dalla media (20-85%), 2 dalla top
-//    (15%). I candidati arrivano da club/stagioni diversi (ognuno mostra il suo
-//    club e anno) e sono mostrati in ordine alfabetico (l'ordine non rivela la
-//    forza). Niente doppioni, nemmeno tra stagioni diverse.
+//  vengono proposti 10 candidati a OVERALL NASCOSTO, TUTTI DALLA STESSA
+//  squadra storica (scelta a caso ad ogni round): prima i giocatori
+//  compatibili col ruolo, poi — se la squadra non ne ha abbastanza — si
+//  completa con altri suoi giocatori, per avere sempre 10 nomi tra cui
+//  scegliere. Mostrati in ordine alfabetico (l'ordine non rivela la forza).
+//  Niente doppioni, nemmeno tra stagioni diverse.
 //
 //  3 SKIP (uno a testa, per tutto il draft) ripescano i 10 con scope diverso:
-//    - "tutto"    : dall'intero database
-//    - "stagione" : solo da una stagione (stessa annata)
-//    - "club"     : solo da un club (stesso club)
+//    - "tutto"    : mix di giocatori dall'intero database (comportamento
+//                   pre-esistente, usato come ripesca speciale)
+//    - "stagione" : solo da una stagione (stessa annata, più club)
+//    - "club"     : un'altra squadra a caso (nuovo tentativo del default)
 // ============================================================================
 
 import { SQUADRE } from "@/dati/squadre";
 import { ALLENATORI } from "@/dati/allenatori";
 import { macroRuolo } from "@/logica/formazione";
+
+const MINIMO_CANDIDATI_SQUADRA = 4; // sotto questa soglia si scarta la squadra
+const TENTATIVI_SQUADRA = 25;
 
 function casuale(a) { return a[Math.floor(Math.random() * a.length)]; }
 function chiave(g) { return (g.cognome || g.nome || "").toLowerCase(); }
@@ -36,27 +41,51 @@ function overallPerSlot(g, slotRuolo) {
   return Math.round(Math.max(...base.map((x) => x.overall)));
 }
 
-// Pool di tutti i candidati per un ruolo (esclusi quelli già scelti).
-function poolPerRuolo(slotRuolo, idsUsati, personeUsate, squadre) {
+function candidatoDa(squadra, g, slotRuolo) {
   const r = String(slotRuolo).toUpperCase();
   const macro = macroRuolo(slotRuolo);
+  const esatto = g.ruoli.some((x) => x.ruolo.toUpperCase() === r);
+  const macroOk = esatto || g.ruoli.some((x) => macroRuolo(x.ruolo) === macro);
+  return {
+    nome: g.nome, cognome: g.cognome, ruolo: slotRuolo,
+    overall: overallPerSlot(g, slotRuolo), _id: idGiocatore(squadra, g), esatto, macroOk,
+    provenienza: { squadra: squadra.squadra, anno: squadra.anno, colore: squadra.colore },
+  };
+}
+
+function giocatoriDisponibili(squadra, idsUsati, personeUsate) {
+  return squadra.giocatori.filter(
+    (g) => !idsUsati.has(idGiocatore(squadra, g)) && !personeUsate.has(chiavePersona(g))
+  );
+}
+
+// Pool di tutti i candidati per un ruolo, mescolando tutte le squadre (usato
+// per lo skip "tutto" e come rete di sicurezza se nessuna squadra singola
+// basta).
+function poolPerRuolo(slotRuolo, idsUsati, personeUsate, squadre) {
   const pool = [];
   for (const s of squadre) {
-    for (const g of s.giocatori) {
-      if (idsUsati.has(idGiocatore(s, g)) || personeUsate.has(chiavePersona(g))) continue;
-      const esatto = g.ruoli.some((x) => x.ruolo.toUpperCase() === r);
-      const macroOk = esatto || g.ruoli.some((x) => macroRuolo(x.ruolo) === macro);
-      if (!macroOk) continue;
-      pool.push({
-        nome: g.nome, cognome: g.cognome, ruolo: slotRuolo,
-        overall: overallPerSlot(g, slotRuolo), _id: idGiocatore(s, g), esatto,
-        provenienza: { squadra: s.squadra, anno: s.anno, colore: s.colore },
-      });
+    for (const g of giocatoriDisponibili(s, idsUsati, personeUsate)) {
+      const c = candidatoDa(s, g, slotRuolo);
+      if (c.macroOk) pool.push(c);
     }
   }
   // se ci sono abbastanza giocatori col ruolo ESATTO, usa solo quelli
   const esatti = pool.filter((p) => p.esatto);
   return esatti.length >= 10 ? esatti : pool;
+}
+
+// Pool con TUTTI i giocatori disponibili di UNA squadra, per ruolo di
+// compatibilità (compatibili col ruolo prima, il resto della rosa dopo, per
+// completare a 10 se la squadra non ne ha abbastanza per quel ruolo).
+function poolSquadraSingola(squadra, slotRuolo, idsUsati, personeUsate) {
+  const compatibili = [];
+  const altri = [];
+  for (const g of giocatoriDisponibili(squadra, idsUsati, personeUsate)) {
+    const c = candidatoDa(squadra, g, slotRuolo);
+    (c.macroOk ? compatibili : altri).push(c);
+  }
+  return { compatibili, altri, totale: compatibili.length + altri.length };
 }
 
 function applicaScope(pool, scope) {
@@ -90,10 +119,45 @@ function selezionaBande(pool) {
   return scelti.sort(ordinaAlfabetico);
 }
 
-// Estrae i candidati per lo slot. scope: {tipo: "tutto"|"stagione"|"club"}.
-export function estraiCandidati(slotRuolo, idsUsati, personeUsate = new Set(), squadre = SQUADRE, scope = { tipo: "tutto" }) {
-  const pool = applicaScope(poolPerRuolo(slotRuolo, idsUsati, personeUsate, squadre), scope);
-  return { candidati: selezionaBande(pool) };
+// Prova squadre a caso finché non ne trova una con abbastanza giocatori
+// disponibili (priorità a quelle con più compatibili col ruolo).
+function estraiDaSquadraCasuale(slotRuolo, idsUsati, personeUsate, squadre) {
+  const provate = new Set();
+  let migliore = null;
+  for (let i = 0; i < TENTATIVI_SQUADRA && provate.size < squadre.length; i++) {
+    const restanti = squadre.filter((s) => !provate.has(s.id));
+    if (!restanti.length) break;
+    const squadra = casuale(restanti);
+    provate.add(squadra.id);
+    const { compatibili, altri, totale } = poolSquadraSingola(squadra, slotRuolo, idsUsati, personeUsate);
+    if (totale < MINIMO_CANDIDATI_SQUADRA) continue;
+    if (!migliore || compatibili.length > migliore.compatibili.length) {
+      migliore = { squadra, compatibili, altri, totale };
+    }
+    if (compatibili.length >= 10 || totale >= 10) break; // abbastanza, fermati qui
+  }
+  return migliore;
+}
+
+// Estrae i candidati per lo slot. scope: {tipo: "squadra"|"tutto"|"stagione"|"club"}.
+export function estraiCandidati(slotRuolo, idsUsati, personeUsate = new Set(), squadre = SQUADRE, scope = { tipo: "squadra" }) {
+  if (scope?.tipo === "tutto") {
+    return { candidati: selezionaBande(poolPerRuolo(slotRuolo, idsUsati, personeUsate, squadre)) };
+  }
+  if (scope?.tipo === "stagione") {
+    const pool = applicaScope(poolPerRuolo(slotRuolo, idsUsati, personeUsate, squadre), scope);
+    return { candidati: selezionaBande(pool) };
+  }
+
+  // default ("squadra") e skip "club": una squadra sola, priorità ai
+  // compatibili col ruolo, completata con altri suoi giocatori se serve.
+  const trovata = estraiDaSquadraCasuale(slotRuolo, idsUsati, personeUsate, squadre);
+  if (!trovata) {
+    // rete di sicurezza: nessuna squadra ha abbastanza giocatori rimasti
+    return { candidati: selezionaBande(poolPerRuolo(slotRuolo, idsUsati, personeUsate, squadre)) };
+  }
+  const base = trovata.compatibili.length >= 10 ? trovata.compatibili : [...trovata.compatibili, ...trovata.altri];
+  return { candidati: selezionaBande(base), squadra: trovata.squadra };
 }
 
 export function estraiAllenatori(n = 4, allenatori = ALLENATORI) {

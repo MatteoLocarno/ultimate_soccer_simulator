@@ -17,6 +17,7 @@ export default function SchermataDraft({ slot, squadre, allenatori: listaAllenat
 
   const [picks, setPicks] = useState([]);
   const [candidati, setCandidati] = useState([]);
+  const [squadraEstratta, setSquadraEstratta] = useState(null);
   const [allenatori, setAllenatori] = useState(null);
   const [allenatoreScelto, setAllenatoreScelto] = useState(null);
   const [skipUsati, setSkipUsati] = useState([]); // tipi di skip già usati (tutto il draft)
@@ -29,11 +30,13 @@ export default function SchermataDraft({ slot, squadre, allenatori: listaAllenat
   const idsUsati = () => new Set(picks.map((p) => p.giocatore._id));
   const personeUsate = () => new Set(picks.map((p) => chiavePersona(p.giocatore)));
 
-  // Nuovi candidati ad ogni slot (scope "tutto"); allenatori in fase coach.
+  // Nuovi candidati ad ogni slot: 10 giocatori dalla stessa squadra storica
+  // (scope "squadra", default); allenatori in fase coach.
   useEffect(() => {
     if (faseGiocatori) {
-      const { candidati } = estraiCandidati(slot[picks.length].ruolo, idsUsati(), personeUsate(), squadre, { tipo: "tutto" });
+      const { candidati, squadra } = estraiCandidati(slot[picks.length].ruolo, idsUsati(), personeUsate(), squadre, { tipo: "squadra" });
       setCandidati(candidati);
+      setSquadraEstratta(squadra || null);
     } else if (faseAllenatore) {
       setAllenatori(estraiAllenatori(4, listaAllenatori));
     }
@@ -42,8 +45,9 @@ export default function SchermataDraft({ slot, squadre, allenatori: listaAllenat
   function usaSkip(tipo) {
     if (skipUsati.includes(tipo) || !faseGiocatori) return;
     setSkipUsati((s) => [...s, tipo]);
-    const { candidati } = estraiCandidati(slotCorrente.ruolo, idsUsati(), personeUsate(), squadre, { tipo });
+    const { candidati, squadra } = estraiCandidati(slotCorrente.ruolo, idsUsati(), personeUsate(), squadre, { tipo });
     setCandidati(candidati);
+    setSquadraEstratta(squadra || null);
   }
 
   function scegliGiocatore(c) {
@@ -92,7 +96,9 @@ export default function SchermataDraft({ slot, squadre, allenatori: listaAllenat
           {faseGiocatori && (
             <>
               <p className="istruzione">
-                10 candidati per il ruolo, da club e stagioni diversi.{" "}
+                {squadraEstratta
+                  ? <>10 candidati da <b>{squadraEstratta.squadra} {squadraEstratta.anno}</b>.</>
+                  : "10 candidati per il ruolo."}{" "}
                 <b>L&apos;overall resta nascosto.</b>
               </p>
               <div className="skip-bar">

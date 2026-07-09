@@ -11,8 +11,28 @@ import { SQUADRE } from "@/dati/squadre";
 import { macroRuolo } from "@/logica/formazione";
 
 const VANTAGGIO_CASA = 0.3;
-const GOL_BASE = 1.3;
+const GOL_BASE = 1.45;
 const BONUS_ALL_BASE = 0.8;
+
+// Le rose delle squadre storiche arrivano dall'archivio SoFIFA e possono
+// avere 30-45 giocatori. Usarle tutte per il lotto gol/assist diluisce troppo
+// i bomber tra decine di riserve: si limita la "rosa attiva" (quella usata
+// per marcatori/assist) ai migliori per reparto, per un peso realistico.
+const ROSA_ATTIVA_MAX = { P: 2, D: 8, C: 8, A: 6 };
+
+function rosaAttiva(giocatori) {
+  const perRuolo = { P: [], D: [], C: [], A: [] };
+  for (const g of giocatori) {
+    const m = macroRuolo(g.ruolo) || "C";
+    (perRuolo[m] || perRuolo.C).push(g);
+  }
+  const risultato = [];
+  for (const m of Object.keys(ROSA_ATTIVA_MAX)) {
+    const ordinati = [...perRuolo[m]].sort((a, b) => b.overall - a.overall);
+    risultato.push(...ordinati.slice(0, ROSA_ATTIVA_MAX[m]));
+  }
+  return risultato.length ? risultato : giocatori;
+}
 
 export function bonusAllenatore(allenatore) {
   if (!allenatore) return 0;
@@ -71,12 +91,14 @@ export function costruisciCampionato(
     colore: s.colore,
     forza: forzaDaGiocatori(s.giocatori) + BONUS_ALL_BASE,
     utente: false,
-    rosa: s.giocatori.map((g) => ({
-      nome: g.nome,
-      cognome: g.cognome,
-      ruolo: ruoloPrincipale(g),
-      overall: g.overall,
-    })),
+    rosa: rosaAttiva(
+      s.giocatori.map((g) => ({
+        nome: g.nome,
+        cognome: g.cognome,
+        ruolo: ruoloPrincipale(g),
+        overall: g.overall,
+      }))
+    ),
   }));
 
   return [tua, ...avversarie];
@@ -100,18 +122,45 @@ function simulaPartita(casa, ospite) {
 }
 
 // --- attribuzione gol/assist per ruolo + overall ---------------------------
-const PESO_GOL = { A: 1.0, C: 0.42, D: 0.12, P: 0.01 };
-const PESO_ASSIST = { A: 0.7, C: 1.0, D: 0.32, P: 0.03 };
+// Oltre al peso per ruolo/overall, si dà un bonus al "titolare designato" di
+// ogni reparto (1°, 2°, 3° per overall): senza, con rose ampie (30-45
+// giocatori) gli overall dei migliori sono troppo vicini tra loro e i gol si
+// spalmano su troppi pochi-utilizzati invece di concentrarsi sui bomber veri
+// (in una stagione reale il capocannoniere fa da solo il 30-40% dei gol
+// squadra). Per gli assist il bonus è più lieve: nel calcio reale gli assist
+// sono più distribuiti tra i giocatori offensivi/creativi.
+const PESO_GOL = { A: 1.0, C: 0.25, D: 0.1, P: 0.01 };
+const PESO_ASSIST = { A: 0.7, C: 1.0, D: 0.28, P: 0.03 };
+const BONUS_RANGO_GOL = [7, 2.5, 1.3];
+const BONUS_RANGO_ASSIST = [3, 1.8, 1.2];
 
-function peso(mappa, p) {
+// Rango (1°, 2°, 3°… per overall) di ogni giocatore nel proprio reparto,
+// dentro una rosa: serve per il bonus "titolare designato".
+function rangoPerReparto(rosa) {
+  const perReparto = new Map();
+  for (const p of rosa) {
+    const m = macroRuolo(p.ruolo) || "C";
+    if (!perReparto.has(m)) perReparto.set(m, []);
+    perReparto.get(m).push(p);
+  }
+  const rango = new Map();
+  for (const lista of perReparto.values()) {
+    lista.sort((a, b) => b.overall - a.overall);
+    lista.forEach((p, i) => rango.set(p, i));
+  }
+  return rango;
+}
+
+function peso(mappa, bonusRango, p, indiceRango) {
   const m = macroRuolo(p.ruolo) || "C";
   const base = mappa[m] ?? 0.3;
-  return base * Math.pow(Math.max(p.overall, 40) / 100, 2);
+  const bonus = bonusRango[indiceRango] ?? 1;
+  return base * Math.pow(Math.max(p.overall, 40) / 100, 2) * bonus;
 }
-function scegliPesato(rosa, mappa, escludi) {
+function scegliPesato(rosa, mappa, bonusRango, rango, escludi) {
   const pool = escludi ? rosa.filter((p) => p !== escludi) : rosa;
   if (!pool.length) return null;
-  const pesi = pool.map((p) => peso(mappa, p));
+  const pesi = pool.map((p) => peso(mappa, bonusRango, p, rango.get(p) ?? 99));
   const tot = pesi.reduce((a, b) => a + b, 0);
   if (tot <= 0) return pool[Math.floor(Math.random() * pool.length)];
   let r = Math.random() * tot;
@@ -162,14 +211,18 @@ export function simulaStagione(squadre) {
   const andamentoUtente = [];
   const giornateSnap = [];
   const tally = new Map(); // chiave giocatore -> { nome, cognome, squadra, gol, assist, utente }
+  // rango per reparto di ogni squadra, calcolato una volta sola (non cambia
+  // durante la stagione) e riusato ad ogni gol per il bonus "titolare".
+  const rangoSquadre = new Map(squadre.map((s) => [s.id, rangoPerReparto(s.rosa || [])]));
 
   function segna(team, golFatti) {
     if (!golFatti || !team.rosa?.length) return;
+    const rango = rangoSquadre.get(team.id);
     for (let i = 0; i < golFatti; i++) {
-      const marcatore = scegliPesato(team.rosa, PESO_GOL, null);
+      const marcatore = scegliPesato(team.rosa, PESO_GOL, BONUS_RANGO_GOL, rango, null);
       if (!marcatore) continue;
       const conAssist = Math.random() < 0.72;
-      const assistman = conAssist ? scegliPesato(team.rosa, PESO_ASSIST, marcatore) : null;
+      const assistman = conAssist ? scegliPesato(team.rosa, PESO_ASSIST, BONUS_RANGO_ASSIST, rango, marcatore) : null;
       for (const [p, tipo] of [[marcatore, "gol"], [assistman, "assist"]]) {
         if (!p) continue;
         const k = `${team.id}__${p.nome}_${p.cognome}`;
