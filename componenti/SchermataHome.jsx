@@ -1,15 +1,13 @@
 import Stemma from "@/componenti/Stemma";
 import AdSlot from "@/componenti/AdSlot";
-import DonaCaffe from "@/componenti/DonaCaffe";
 
 // Schermata iniziale: stemma + brand + regole rapide. La CTA porta al setup.
+// Il widget "dona un caffè" è quello fisso globale (app/layout.js): resta
+// fuori dal flusso e non sposta mai stemma/titolo, né su desktop né mobile.
 export default function SchermataHome({ onAvvia }) {
   return (
     <div className="home">
       <header className="brand">
-        {/* Solo su mobile: sopra lo stemma (su desktop la mostra la
-            versione fissa in alto a destra nel layout). */}
-        <DonaCaffe className="dona-inline" />
         <Stemma size={132} className="brand-stemma" />
         <h1>
           Dinastia<br />

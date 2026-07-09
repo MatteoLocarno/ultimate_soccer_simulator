@@ -8,12 +8,11 @@ const LEGGENDE = [
   "Buffon", "Baresi", "Cannavaro", "Nesta", "Zola",
 ];
 
-// TODO: sostituire con il link reale della raccolta GoFundMe quando pronto.
-const LINK_DONAZIONE = "https://www.gofundme.com/";
+const LINK_DONAZIONE = "https://gofund.me/d8fbfea23";
 
-// Pillola "offrici un caffè". className distingue la collocazione:
-//  - "dona-fissa"  → in alto a destra, fissa (desktop, su ogni schermo)
-//  - "dona-inline" → nel flusso, sopra lo stemma (mobile, in home)
+// Pillola "offrici un caffè": fissa in alto a destra su ogni schermo
+// (className "dona-fissa", vedi app/layout.js). Fuori dal flusso del
+// documento apposta, così non sposta mai nient'altro nel layout.
 export default function DonaCaffe({ className = "" }) {
   const [i, setI] = useState(0);
 
