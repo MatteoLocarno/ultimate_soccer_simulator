@@ -26,6 +26,11 @@ export default function Gioco() {
   const [dati, setDati] = useState(DATI_LOCALI);
   // Modulo scelto (default: primo modulo disponibile).
   const [modulo, setModulo] = useState(DATI_LOCALI.formazioni[0]);
+  // Diventa true quando il caricamento delle squadre (locale o Supabase) è
+  // concluso: il draft aspetta questo flag, altrimenti — se ci si arriva in
+  // pochi secondi — partirebbe con le sole 5 squadre di fallback locali
+  // invece delle centinaia da Supabase (che impiegano ~20s a scaricarsi).
+  const [squadrePronte, setSquadrePronte] = useState(false);
 
   useEffect(() => {
     let attivo = true;
@@ -39,6 +44,7 @@ export default function Gioco() {
     caricaSquadre().then((d) => {
       if (!attivo || !d) return;
       setDati((prev) => ({ ...prev, squadre: d.squadre }));
+      setSquadrePronte(true);
     });
     return () => {
       attivo = false;
@@ -85,7 +91,14 @@ export default function Gioco() {
         />
       )}
 
-      {fase === "draft" && (
+      {fase === "draft" && !squadrePronte && (
+        <div className="attesa-squadre">
+          <div className="attesa-pallino" />
+          <p>Sto preparando l&apos;archivio delle squadre storiche…</p>
+        </div>
+      )}
+
+      {fase === "draft" && squadrePronte && (
         <SchermataDraft
           slot={slot}
           squadre={dati.squadre}

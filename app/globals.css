@@ -175,6 +175,36 @@ button {
   justify-content: center;
   gap: 22px;
 }
+
+/* Attesa prima del draft: si vede solo se ci si arriva in pochi secondi,
+   prima che le squadre da Supabase finiscano di scaricarsi. */
+.attesa-squadre {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 14px;
+  text-align: center;
+  color: var(--testo-soft);
+  font-family: var(--font-titolo);
+  font-size: 14px;
+  padding: 40px 24px;
+}
+.attesa-pallino {
+  width: 14px;
+  height: 14px;
+  border-radius: 50%;
+  background: var(--rosso);
+  animation: attesaPulse 1s ease-in-out infinite;
+}
+@keyframes attesaPulse {
+  0%, 100% { transform: scale(0.7); opacity: 0.5; }
+  50% { transform: scale(1); opacity: 1; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .attesa-pallino { animation: none; }
+}
 .home .pallone {
   font-size: 64px;
   text-align: center;
