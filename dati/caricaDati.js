@@ -88,7 +88,9 @@ export const DATI_LOCALI = {
 // parallelo bastano a far ripartire i timeout sul DB.
 const PAGINA_TEAM_SEASON = 40;
 
-async function caricaTuttiTeamSeason() {
+// onProgresso(fatti, totali): chiamato dopo ogni blocco, per mostrare una
+// barra di caricamento reale (non finta) in UI.
+async function caricaTuttiTeamSeason(onProgresso) {
   const { data: idsData, error: erroreIds } = await supabase
     .from("team_season")
     .select("team_season_id")
@@ -112,6 +114,7 @@ async function caricaTuttiTeamSeason() {
       .in("team_season_id", blocco);
     if (error) throw error;
     risultato.push(...(data || []));
+    onProgresso?.(risultato.length, ids.length);
   }
   return risultato;
 }
@@ -167,12 +170,13 @@ export async function caricaAllenatoriEFormazioni() {
 }
 
 // Squadre-stagione: centinaia di righe, il caricamento più lento. Separato
-// da allenatori/formazioni (vedi sopra).
-export async function caricaSquadre() {
+// da allenatori/formazioni (vedi sopra). onProgresso(fatti, totali): per la
+// barra di caricamento in UI.
+export async function caricaSquadre(onProgresso) {
   if (!supabaseAttivo) return { squadre: DATI_LOCALI.squadre, fonte: "locale" };
 
   try {
-    const datiTeamSeason = await caricaTuttiTeamSeason();
+    const datiTeamSeason = await caricaTuttiTeamSeason(onProgresso);
 
     const squadre = (datiTeamSeason || [])
       .map((ts) => {

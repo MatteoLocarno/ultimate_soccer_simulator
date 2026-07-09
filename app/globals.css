@@ -176,34 +176,116 @@ button {
   gap: 22px;
 }
 
-/* Attesa prima del draft: si vede solo se ci si arriva in pochi secondi,
-   prima che le squadre da Supabase finiscano di scaricarsi. */
+/* ==========================================================================
+   ATTESA CARICAMENTO SQUADRE — si vede solo se si arriva al draft in pochi
+   secondi, prima che le squadre da Supabase finiscano di scaricarsi.
+   Barra "a segmenti" in stile videogioco retrò, con avanzamento REALE.
+   ========================================================================== */
 .attesa-squadre {
   flex: 1;
   display: flex;
   flex-direction: column;
   align-items: center;
   justify-content: center;
-  gap: 14px;
+  gap: 10px;
   text-align: center;
-  color: var(--testo-soft);
+  padding: 32px 20px;
+}
+.attesa-occhiello {
   font-family: var(--font-titolo);
-  font-size: 14px;
-  padding: 40px 24px;
+  font-size: 12px;
+  letter-spacing: 3px;
+  text-transform: uppercase;
+  color: var(--testo-soft);
 }
-.attesa-pallino {
-  width: 14px;
-  height: 14px;
-  border-radius: 50%;
-  background: var(--rosso);
-  animation: attesaPulse 1s ease-in-out infinite;
+.attesa-titolo {
+  font-family: var(--font-titolo);
+  font-weight: 700;
+  font-size: 22px;
+  color: var(--testo);
+  margin: 0 0 8px;
 }
-@keyframes attesaPulse {
-  0%, 100% { transform: scale(0.7); opacity: 0.5; }
-  50% { transform: scale(1); opacity: 1; }
+
+.attesa-barra {
+  display: flex;
+  gap: 3px;
+  width: 100%;
+  max-width: 320px;
+  padding: 6px;
+  background: var(--pannello);
+  border: 2px solid var(--bordo-scuro);
+  border-radius: 8px;
+  box-shadow: var(--ombra);
+}
+.attesa-segmento {
+  flex: 1;
+  height: 16px;
+  border-radius: 2px;
+  background: rgba(0, 0, 0, 0.12);
+  transition: background 0.25s ease, box-shadow 0.25s ease;
+}
+.attesa-segmento.pieno {
+  background: linear-gradient(180deg, var(--oro), var(--rosso));
+  box-shadow: 0 0 6px rgba(156, 42, 36, 0.5);
+  animation: attesaSegmentoPop 0.3s ease both;
+}
+@keyframes attesaSegmentoPop {
+  from { transform: scaleY(0.4); opacity: 0.3; }
+  to { transform: scaleY(1); opacity: 1; }
+}
+.attesa-percentuale {
+  font-family: var(--font-titolo);
+  font-weight: 700;
+  font-size: 13px;
+  letter-spacing: 1px;
+  color: var(--testo-soft);
+  margin-bottom: 18px;
+  font-variant-numeric: tabular-nums;
+}
+
+.attesa-curiosita {
+  max-width: 380px;
+  min-height: 54px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  font-size: 13.5px;
+  line-height: 1.5;
+  color: var(--testo-soft);
+  animation: attesaCuriositaBlur 0.6s ease both;
+}
+.attesa-pallone {
+  flex-shrink: 0;
+}
+@keyframes attesaCuriositaBlur {
+  from {
+    filter: blur(6px);
+    opacity: 0;
+    transform: translateY(4px);
+  }
 }
 @media (prefers-reduced-motion: reduce) {
-  .attesa-pallino { animation: none; }
+  .attesa-segmento.pieno,
+  .attesa-curiosita {
+    animation: none !important;
+  }
+}
+@media (max-width: 640px) {
+  .attesa-squadre {
+    padding: 24px 16px;
+    gap: 8px;
+  }
+  .attesa-titolo {
+    font-size: 18px;
+  }
+  .attesa-barra {
+    max-width: 100%;
+  }
+  .attesa-curiosita {
+    font-size: 12.5px;
+    max-width: 320px;
+  }
 }
 .home .pallone {
   font-size: 64px;

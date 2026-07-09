@@ -3,6 +3,7 @@
 import { useEffect, useMemo, useState } from "react";
 import { costruisciSlot } from "@/logica/formazione";
 import { caricaAllenatoriEFormazioni, caricaSquadre, DATI_LOCALI } from "@/dati/caricaDati";
+import CaricamentoSquadre from "@/componenti/CaricamentoSquadre";
 import SchermataHome from "@/componenti/SchermataHome";
 import SchermataSetup, { COLORI } from "@/componenti/SchermataSetup";
 import SchermataDraft from "@/componenti/SchermataDraft";
@@ -31,6 +32,9 @@ export default function Gioco() {
   // pochi secondi — partirebbe con le sole 5 squadre di fallback locali
   // invece delle centinaia da Supabase (che impiegano ~20s a scaricarsi).
   const [squadrePronte, setSquadrePronte] = useState(false);
+  // Avanzamento reale dello scaricamento (blocchi completati/totali), per la
+  // barra di caricamento in stile videogioco.
+  const [progresso, setProgresso] = useState({ fatti: 0, totali: 0 });
 
   useEffect(() => {
     let attivo = true;
@@ -41,7 +45,9 @@ export default function Gioco() {
       if (d.formazioni?.length) setModulo(d.formazioni[0]);
     });
     // Squadre: centinaia di righe, più lente (servono solo al draft).
-    caricaSquadre().then((d) => {
+    caricaSquadre((fatti, totali) => {
+      if (attivo) setProgresso({ fatti, totali });
+    }).then((d) => {
       if (!attivo || !d) return;
       setDati((prev) => ({ ...prev, squadre: d.squadre }));
       setSquadrePronte(true);
@@ -92,10 +98,7 @@ export default function Gioco() {
       )}
 
       {fase === "draft" && !squadrePronte && (
-        <div className="attesa-squadre">
-          <div className="attesa-pallino" />
-          <p>Sto preparando l&apos;archivio delle squadre storiche…</p>
-        </div>
+        <CaricamentoSquadre fatti={progresso.fatti} totali={progresso.totali} />
       )}
 
       {fase === "draft" && squadrePronte && (
