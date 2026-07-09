@@ -2,13 +2,15 @@
 
 import { useId } from "react";
 
-// Pallone di cuoio "storico" (a spicchi, con i lacci e le cuciture), in SVG
-// con un po' di ombreggiatura per un effetto cuoio più realistico, coerente
-// con lo stile vintage del sito invece del solito emoji ⚽ (pallone moderno
-// bianco/nero, piatto).
+// Pallone di cuoio "storico" (spicchi cuciti + toppa allacciata), ispirato
+// ai veri palloni da calcio in cuoio anni '30-'50: tinta calda e
+// disomogenea (il cuoio invecchiato non è mai uniforme), spicchi ben
+// visibili, toppa centrale allacciata con i lacci incrociati. In SVG,
+// coerente con lo stile "figurina" vintage del sito invece del solito
+// emoji ⚽ (pallone moderno bianco/nero, piatto).
 export default function PalloneStorico({ size = 34, className = "" }) {
   const id = useId();
-  const gradiente = `pallone-cuoio-${id}`;
+  const base = `pallone-base-${id}`;
   const lucido = `pallone-lucido-${id}`;
 
   return (
@@ -20,39 +22,52 @@ export default function PalloneStorico({ size = 34, className = "" }) {
       aria-hidden="true"
     >
       <defs>
-        <radialGradient id={gradiente} cx="38%" cy="34%" r="75%">
-          <stop offset="0%" stopColor="#e3b567" />
-          <stop offset="55%" stopColor="#c9973e" />
-          <stop offset="100%" stopColor="#9a6f2b" />
+        <radialGradient id={base} cx="36%" cy="32%" r="78%">
+          <stop offset="0%" stopColor="#d9a25a" />
+          <stop offset="45%" stopColor="#b87f3a" />
+          <stop offset="80%" stopColor="#8f5f28" />
+          <stop offset="100%" stopColor="#6e481d" />
         </radialGradient>
-        <radialGradient id={lucido} cx="32%" cy="26%" r="22%">
-          <stop offset="0%" stopColor="#fff3d6" stopOpacity="0.85" />
-          <stop offset="100%" stopColor="#fff3d6" stopOpacity="0" />
+        <radialGradient id={lucido} cx="30%" cy="24%" r="20%">
+          <stop offset="0%" stopColor="#fbe3ab" stopOpacity="0.8" />
+          <stop offset="100%" stopColor="#fbe3ab" stopOpacity="0" />
         </radialGradient>
       </defs>
 
-      <circle cx="50" cy="50" r="45" fill={`url(#${gradiente})`} stroke="#4a341a" strokeWidth="3.5" />
+      <circle cx="50" cy="50" r="45" fill={`url(#${base})`} stroke="#432c12" strokeWidth="3.5" />
 
-      {/* spicchi in stile "mappamondo", come i palloni di cuoio anni '30-'50 */}
-      <path d="M50 6 C 30 26, 30 74, 50 94" fill="none" stroke="#4a341a" strokeWidth="2.6" strokeLinecap="round" />
-      <path d="M50 6 C 70 26, 70 74, 50 94" fill="none" stroke="#4a341a" strokeWidth="2.6" strokeLinecap="round" />
-      <path d="M7 50 C 27 31, 73 31, 93 50" fill="none" stroke="#4a341a" strokeWidth="2.6" strokeLinecap="round" />
-      <path d="M7 50 C 27 69, 73 69, 93 50" fill="none" stroke="#4a341a" strokeWidth="2.6" strokeLinecap="round" />
-
-      {/* piccole cuciture decorative lungo i due spicchi verticali */}
-      <g stroke="#4a341a" strokeWidth="1" opacity="0.5">
-        <line x1="34" y1="26" x2="38" y2="27" /> <line x1="34" y1="50" x2="39" y2="50" /> <line x1="34" y1="74" x2="38" y2="73" />
-        <line x1="66" y1="26" x2="62" y2="27" /> <line x1="66" y1="50" x2="61" y2="50" /> <line x1="66" y1="74" x2="62" y2="73" />
+      {/* macchie di cuoio invecchiato, disomogeneo come nel vero cuoio */}
+      <g opacity="0.28" fill="#432c12">
+        <ellipse cx="66" cy="68" rx="16" ry="12" />
+        <ellipse cx="28" cy="62" rx="10" ry="8" />
+        <ellipse cx="70" cy="30" rx="8" ry="6" />
       </g>
 
-      {/* laccio */}
-      <rect x="40" y="6" width="20" height="10" rx="2.5" fill="#4a341a" />
-      <line x1="44" y1="8.5" x2="44" y2="13.5" stroke="#c9973e" strokeWidth="1.5" />
-      <line x1="50" y1="8.5" x2="50" y2="13.5" stroke="#c9973e" strokeWidth="1.5" />
-      <line x1="56" y1="8.5" x2="56" y2="13.5" stroke="#c9973e" strokeWidth="1.5" />
+      {/* spicchi: 6 meridiani che convergono ai due poli, come un vero
+          pallone a 18 pannelli */}
+      <g fill="none" stroke="#432c12" strokeWidth="2" strokeLinecap="round" opacity="0.85">
+        <path d="M50 5 C 38 24, 38 76, 50 95" />
+        <path d="M50 5 C 62 24, 62 76, 50 95" />
+        <path d="M50 5 C 22 22, 20 55, 32 82" />
+        <path d="M50 5 C 78 22, 80 55, 68 82" />
+        <path d="M6 48 C 26 30, 74 30, 94 48" />
+        <path d="M6 55 C 26 73, 74 73, 94 55" />
+      </g>
+
+      {/* toppa centrale allacciata */}
+      <rect x="32" y="42" width="36" height="17" rx="2.5" fill="#432c12" stroke="#2c1c0c" strokeWidth="1" />
+      <g stroke="#c9973e" strokeWidth="1.6" opacity="0.9">
+        <line x1="37" y1="45" x2="63" y2="45" />
+        <line x1="37" y1="49.5" x2="63" y2="49.5" />
+        <line x1="37" y1="54" x2="63" y2="54" />
+      </g>
+      {[38, 44, 50, 56, 62].map((x) => (
+        <line key={x} x1={x} y1="43" x2={x} y2="58" stroke="#2c1c0c" strokeWidth="1.1" opacity="0.7" />
+      ))}
+      <circle cx="50" cy="50.5" r="1.6" fill="#1e130a" />
 
       {/* riflesso di luce, per un effetto cuoio meno piatto */}
-      <circle cx="35" cy="30" r="16" fill={`url(#${lucido})`} />
+      <circle cx="34" cy="28" r="15" fill={`url(#${lucido})`} />
     </svg>
   );
 }
