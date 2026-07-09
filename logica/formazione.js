@@ -43,11 +43,12 @@ export function macroRuolo(r) {
   return null;
 }
 
-// Panchina fissa (macro-ruoli): 1 P, 2 D, 2 C, 2 A.
-const PANCHINA = [
-  { ruolo: "P" }, { ruolo: "D" }, { ruolo: "D" },
-  { ruolo: "C" }, { ruolo: "C" }, { ruolo: "A" }, { ruolo: "A" },
-];
+// Panchina rimossa per ora (solo titolari nel draft): la lista resta qui
+// pronta, giusto scommentare in costruisciSlot per riattivarla.
+// const PANCHINA = [
+//   { ruolo: "P" }, { ruolo: "D" }, { ruolo: "D" },
+//   { ruolo: "C" }, { ruolo: "C" }, { ruolo: "A" }, { ruolo: "A" },
+// ];
 
 const pos = (ruolo, x, y) => ({ ruolo, x, y });
 
@@ -85,16 +86,15 @@ export const MODULI = [
 
 export const MODULO_DEFAULT = MODULI[0];
 
-// Numero totale di slot (11 titolari + 7 panchina).
-export const TOTALE_SLOT = 18;
+// Numero totale di slot (solo titolari, per ora: panchina rimossa).
+export const TOTALE_SLOT = 11;
 
 // Costruisce l'elenco ordinato degli slot dal modulo scelto.
 export function costruisciSlot(modulo) {
   const titolari = (modulo.posizioni || []).map((p) => ({
     ruolo: p.ruolo, tipo: "titolare", x: p.x, y: p.y,
   }));
-  const panchina = PANCHINA.map((s) => ({ ruolo: s.ruolo, tipo: "panchina" }));
-  return [...titolari, ...panchina].map((s, indice) => ({ ...s, indice }));
+  return titolari.map((s, indice) => ({ ...s, indice }));
 }
 
 // Descrizione "X Dif · Y Cen · Z Att" dalle posizioni dei titolari.

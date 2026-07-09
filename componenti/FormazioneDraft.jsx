@@ -1,9 +1,10 @@
 // Formazione che si compone durante il draft: mostra gli 11 titolari (nelle
-// posizioni del modulo scelto) + i 7 panchinari + l'allenatore. Gli slot già
-// scelti mostrano il COGNOME (mai l'overall, nascosto fino al reveal). Gli
-// slot ancora liberi il cui ruolo è tra i candidati proposti in quel
-// momento pulsano (indicano dove potrebbe atterrare la scelta). Il ruolo sul
-// pallino è quello DETTAGLIATO dello slot (es. "TD"), non il macro-ruolo.
+// posizioni del modulo scelto, panchina rimossa per ora) + l'allenatore. Gli
+// slot già scelti mostrano il COGNOME (mai l'overall, nascosto fino al
+// reveal). Gli slot ancora liberi il cui ruolo è tra i candidati proposti in
+// quel momento pulsano (indicano dove potrebbe atterrare la scelta). Il
+// ruolo sul pallino è quello DETTAGLIATO dello slot (es. "TD"), non il
+// macro-ruolo.
 
 function stato(indice, pick, slotEvidenziati) {
   if (pick) return "pieno";
@@ -42,21 +43,23 @@ export default function FormazioneDraft({
       </div>
 
       <div className="riserve-draft">
-        <div className="rd-fila">
-          <span className="rd-tit">Panchina</span>
-          <div className="rd-slots">
-            {panchina.map((s) => {
-              const pick = picks[s.indice];
-              const st = stato(s.indice, pick, slotEvidenziati);
-              return (
-                <div key={s.indice} className={`rd-chip slot-${st}`}>
-                  <span className="slot-disc">{s.ruolo}</span>
-                  {pick && <span className="rd-nome">{cognome(pick)}</span>}
-                </div>
-              );
-            })}
+        {panchina.length > 0 && (
+          <div className="rd-fila">
+            <span className="rd-tit">Panchina</span>
+            <div className="rd-slots">
+              {panchina.map((s) => {
+                const pick = picks[s.indice];
+                const st = stato(s.indice, pick, slotEvidenziati);
+                return (
+                  <div key={s.indice} className={`rd-chip slot-${st}`}>
+                    <span className="slot-disc">{s.ruolo}</span>
+                    {pick && <span className="rd-nome">{cognome(pick)}</span>}
+                  </div>
+                );
+              })}
+            </div>
           </div>
-        </div>
+        )}
 
         <div className="rd-fila">
           <span className="rd-tit">Allenatore</span>

@@ -488,15 +488,28 @@ button {
   letter-spacing: 2px;
   text-transform: uppercase;
   color: var(--testo-soft);
-  padding: 0 2px 2px;
+  padding: 4px 2px;
   display: flex;
   align-items: baseline;
   gap: 6px;
+  width: 100%;
+  background: none;
+  border: none;
+  cursor: pointer;
+  -webkit-tap-highlight-color: transparent;
 }
 .reparto-candidati-tit span {
   font-size: 10px;
   color: var(--rosso);
   font-weight: 700;
+}
+.reparto-freccia {
+  font-size: 10px;
+  color: var(--testo-soft);
+  width: 10px;
+}
+.reparto-candidati.chiuso .reparto-candidati-tit {
+  opacity: 0.75;
 }
 .candidato-compatto {
   padding: 8px 10px;

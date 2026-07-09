@@ -2,13 +2,13 @@
 //  LOGICA DEL DRAFT
 // ----------------------------------------------------------------------------
 //  Ad ogni giro viene estratta una squadra storica a caso e si mostra TUTTA
-//  la sua rosa DISPONIBILE (ruoli misti, ognuno col proprio ruolo vero) a
-//  OVERALL NASCOSTO. Si sceglie liberamente chi si vuole: va a occupare
-//  automaticamente il primo slot libero del suo ruolo (prima i titolari,
-//  poi la panchina). Quando gli slot di un ruolo sono tutti pieni, quel
-//  ruolo non viene più proposto tra i candidati. Mostrati in ordine
-//  alfabetico (l'ordine non rivela la forza). Niente doppioni, nemmeno tra
-//  stagioni diverse.
+//  la sua rosa DISPONIBILE con overall >= 70 (ruoli misti, ognuno col proprio
+//  ruolo vero) a OVERALL NASCOSTO. Si sceglie liberamente chi si vuole: va ad
+//  occupare automaticamente il primo slot libero del suo ruolo (solo
+//  titolari, per ora: panchina rimossa). Quando gli slot di un ruolo sono
+//  tutti pieni, quel ruolo non viene più proposto tra i candidati (si apre
+//  il reparto successivo). Mostrati in ordine alfabetico (l'ordine non
+//  rivela la forza). Niente doppioni, nemmeno tra stagioni diverse.
 //
 //  3 SKIP (uno a testa, per tutto il draft) ripescano con scope diverso:
 //    - "tutto"    : mix di giocatori dall'intero database (10 candidati a
@@ -24,6 +24,7 @@ import { macroRuolo } from "@/logica/formazione";
 
 const MINIMO_CANDIDATI_SQUADRA = 4; // sotto questa soglia si scarta la squadra
 const TENTATIVI_SQUADRA = 25;
+const OVERALL_MINIMO = 70; // sotto questa soglia il giocatore non viene proposto
 
 function casuale(a) { return a[Math.floor(Math.random() * a.length)]; }
 function chiave(g) { return (g.cognome || g.nome || "").toLowerCase(); }
@@ -66,7 +67,7 @@ function poolLibero(idsUsati, personeUsate, squadre, ruoliEsauriti) {
   for (const s of squadre) {
     for (const g of giocatoriDisponibili(s, idsUsati, personeUsate)) {
       const c = candidatoDa(s, g);
-      if (ruoloProponibile(c.ruolo, ruoliEsauriti)) pool.push(c);
+      if (c.overall >= OVERALL_MINIMO && ruoloProponibile(c.ruolo, ruoliEsauriti)) pool.push(c);
     }
   }
   return pool;
@@ -77,7 +78,7 @@ function poolSquadraSingola(squadra, idsUsati, personeUsate, ruoliEsauriti) {
   const pool = [];
   for (const g of giocatoriDisponibili(squadra, idsUsati, personeUsate)) {
     const c = candidatoDa(squadra, g);
-    if (ruoloProponibile(c.ruolo, ruoliEsauriti)) pool.push(c);
+    if (c.overall >= OVERALL_MINIMO && ruoloProponibile(c.ruolo, ruoliEsauriti)) pool.push(c);
   }
   return pool;
 }

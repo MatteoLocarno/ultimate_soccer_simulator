@@ -50,8 +50,8 @@ export default function SchermataHome({ onAvvia }) {
         <div className="regola">
           <span className="num">2</span>
           <p>
-            <b>Componi la rosa.</b> Scegli modulo e colori, poi 11 titolari + 7
-            in panchina, allenatore e capitano. Gli overall si svelano alla
+            <b>Componi la rosa.</b> Scegli modulo e colori, poi gli 11
+            titolari, allenatore e capitano. Gli overall si svelano alla
             fine.
           </p>
         </div>

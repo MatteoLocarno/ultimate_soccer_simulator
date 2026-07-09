@@ -65,28 +65,30 @@ export default function SchermataRosa({
       </h3>
       <Campo titolari={titolari} capitanoId={capitano} />
 
-      <section className="reparto reparto-panchina">
-        <h3>Panchina</h3>
-        {gruppoPerRuolo(panchina).map((g) => (
-          <div key={g.ruolo}>
-            {g.giocatori.map((p, i) => (
-              <div className="riga-giocatore panchina" key={`p-${g.ruolo}-${i}`}>
-                <div className={classeOvr(p.giocatore.overall)}>
-                  {p.giocatore.overall}
-                </div>
-                <div className="info">
-                  <div className="nome-g">
-                    {p.giocatore.nome} {p.giocatore.cognome}
+      {panchina.length > 0 && (
+        <section className="reparto reparto-panchina">
+          <h3>Panchina</h3>
+          {gruppoPerRuolo(panchina).map((g) => (
+            <div key={g.ruolo}>
+              {g.giocatori.map((p, i) => (
+                <div className="riga-giocatore panchina" key={`p-${g.ruolo}-${i}`}>
+                  <div className={classeOvr(p.giocatore.overall)}>
+                    {p.giocatore.overall}
                   </div>
-                  <div className="prov">
-                    {p.provenienza.squadra} · {p.provenienza.anno}
+                  <div className="info">
+                    <div className="nome-g">
+                      {p.giocatore.nome} {p.giocatore.cognome}
+                    </div>
+                    <div className="prov">
+                      {p.provenienza.squadra} · {p.provenienza.anno}
+                    </div>
                   </div>
                 </div>
-              </div>
-            ))}
-          </div>
-        ))}
-      </section>
+              ))}
+            </div>
+          ))}
+        </section>
+      )}
 
       <div className="azione-fissa">
         <button className="btn" onClick={onSimula}>

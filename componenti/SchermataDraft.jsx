@@ -49,24 +49,15 @@ function calcolaRuoliEsauriti(slot, assegnazioni) {
 //  1. titolare con lo stesso ruolo ESATTO (un'ala sinistra nello slot AS,
 //     non in un AD solo perché libero prima)
 //  2. titolare dello stesso reparto (macro-ruolo) se non c'è un esatto
-//  3. panchina con ruolo esatto
-//  4. panchina dello stesso reparto
-// "Titolare" viene sempre prima di "panchina", indipendentemente
-// dall'esattezza del ruolo: altrimenti un giocatore può finire diretto in
-// panchina (che usa solo macro-ruoli tipo "D") anche con un titolare dello
-// stesso reparto ancora libero, solo perché quello "combacia" più
-// letteralmente.
+// Solo titolari per ora (panchina rimossa dal draft).
 function trovaSlotLibero(slot, assegnazioni, ruolo) {
   const r = String(ruolo).toUpperCase();
   const macro = macroRuolo(ruolo);
   const aperti = slot.filter((s) => !assegnazioni[s.indice]);
-  for (const tipo of ["titolare", "panchina"]) {
-    const delTipo = aperti.filter((s) => s.tipo === tipo);
-    const esatto = delTipo.find((s) => String(s.ruolo).toUpperCase() === r);
-    if (esatto) return esatto;
-    const compatibile = delTipo.find((s) => macroRuolo(s.ruolo) === macro);
-    if (compatibile) return compatibile;
-  }
+  const esatto = aperti.find((s) => String(s.ruolo).toUpperCase() === r);
+  if (esatto) return esatto;
+  const compatibile = aperti.find((s) => macroRuolo(s.ruolo) === macro);
+  if (compatibile) return compatibile;
   return null;
 }
 
@@ -83,6 +74,17 @@ export default function SchermataDraft({ slot, squadre, allenatori: listaAllenat
   const [allenatori, setAllenatori] = useState(null);
   const [allenatoreScelto, setAllenatoreScelto] = useState(null);
   const [skipUsati, setSkipUsati] = useState([]); // tipi di skip già usati (tutto il draft)
+  // Reparti chiusi "a ventaglio" nella lista candidati (per macro-ruolo):
+  // di default tutti aperti, si chiudono/aprono al tocco del titolo.
+  const [repartiChiusi, setRepartiChiusi] = useState(() => new Set());
+
+  function toggleReparto(macro) {
+    setRepartiChiusi((prev) => {
+      const next = new Set(prev);
+      if (next.has(macro)) next.delete(macro); else next.add(macro);
+      return next;
+    });
+  }
 
   const numAssegnati = assegnazioni.filter(Boolean).length;
   const faseGiocatori = numAssegnati < totaleSlot;
@@ -198,25 +200,34 @@ export default function SchermataDraft({ slot, squadre, allenatori: listaAllenat
                 ))}
               </div>
               <div className="lista-candidati lista-candidati-raggruppata">
-                {raggruppaPerReparto(candidati).map((r) => (
-                  <div className="reparto-candidati" key={r.macro}>
-                    <div className="reparto-candidati-tit">
-                      {r.nome} <span>{r.giocatori.length}</span>
-                    </div>
-                    {r.giocatori.map((c) => (
-                      <button key={c._id} className="candidato candidato-compatto" onClick={() => scegliGiocatore(c)}>
-                        <span className="cand-ruolo-tag">{c.ruolo}</span>
-                        <span className="cand-info">
-                          <span className="nome-g">{c.nome} {c.cognome}</span>
-                          <span className="ruolo-g">
-                            {c.provenienza.squadra} {c.provenienza.anno}
-                          </span>
-                        </span>
-                        <span className="freccia">＋</span>
+                {raggruppaPerReparto(candidati).map((r) => {
+                  const aperto = !repartiChiusi.has(r.macro);
+                  return (
+                    <div className={`reparto-candidati ${aperto ? "aperto" : "chiuso"}`} key={r.macro}>
+                      <button
+                        type="button"
+                        className="reparto-candidati-tit"
+                        onClick={() => toggleReparto(r.macro)}
+                        aria-expanded={aperto}
+                      >
+                        <span className="reparto-freccia">{aperto ? "▾" : "▸"}</span>
+                        {r.nome} <span>{r.giocatori.length}</span>
                       </button>
-                    ))}
-                  </div>
-                ))}
+                      {aperto && r.giocatori.map((c) => (
+                        <button key={c._id} className="candidato candidato-compatto" onClick={() => scegliGiocatore(c)}>
+                          <span className="cand-ruolo-tag">{c.ruolo}</span>
+                          <span className="cand-info">
+                            <span className="nome-g">{c.nome} {c.cognome}</span>
+                            <span className="ruolo-g">
+                              {c.provenienza.squadra} {c.provenienza.anno}
+                            </span>
+                          </span>
+                          <span className="freccia">＋</span>
+                        </button>
+                      ))}
+                    </div>
+                  );
+                })}
               </div>
             </>
           )}
