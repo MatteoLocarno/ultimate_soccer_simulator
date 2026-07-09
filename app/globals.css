@@ -818,13 +818,6 @@ button {
   padding: 8px 6px;
   border-bottom: 1px solid var(--bordo);
 }
-.tab-classifica tr.utente td {
-  background: rgba(68, 102, 58, 0.18);
-  font-weight: 700;
-}
-.tab-classifica tr.utente td.sx {
-  border-left: 4px solid var(--verde);
-}
 .tab-classifica .pos {
   font-family: var(--font-titolo);
   color: var(--testo-soft);
@@ -842,9 +835,52 @@ button {
   font-family: var(--font-titolo);
   font-weight: 700;
 }
-.zona-champions td.pos {
+
+/* Zone di classifica (Champions/Europa/Conference/retrocessione): tinta
+   soft su tutta la riga + una sola barra di accento (solo sulla cella
+   posizione, MAI su entrambe le celle "sx" insieme, altrimenti si vedono
+   due barrette verticali affiancate invece di una). */
+.tab-classifica tr.zona-champions td {
+  background: rgba(42, 79, 176, 0.08);
+}
+.tab-classifica tr.zona-champions td.pos {
+  border-left: 3px solid #2a4fb0;
+  color: #2a4fb0;
+  font-weight: 700;
+}
+.tab-classifica tr.zona-europa td {
+  background: rgba(217, 122, 31, 0.1);
+}
+.tab-classifica tr.zona-europa td.pos {
+  border-left: 3px solid #d97a1f;
+  color: #d97a1f;
+  font-weight: 700;
+}
+.tab-classifica tr.zona-conference td {
+  background: rgba(31, 158, 122, 0.1);
+}
+.tab-classifica tr.zona-conference td.pos {
+  border-left: 3px solid #1f9e7a;
+  color: #1f9e7a;
+  font-weight: 700;
+}
+.tab-classifica tr.zona-retro td {
+  background: rgba(156, 42, 36, 0.07);
+}
+.tab-classifica tr.zona-retro td.pos {
+  border-left: 3px solid var(--rosso);
   color: var(--rosso);
   font-weight: 700;
+}
+/* La riga dell'utente vince sempre sul colore di zona (resta ben
+   riconoscibile ovunque finisca in classifica), ma solo su UNA cella. */
+.tab-classifica tr.utente td {
+  background: rgba(68, 102, 58, 0.2);
+  font-weight: 700;
+}
+.tab-classifica tr.utente td.pos {
+  border-left: 4px solid var(--verde-scuro);
+  color: var(--verde-scuro);
 }
 
 .sezione-titolo {
@@ -1720,15 +1756,41 @@ button {
   width: 30px;
   text-align: right;
 }
-.riga-live.champions .rl-pos {
+/* Zone di classifica (Champions/Europa/Conference/retrocessione): stessa
+   tinta soft della classifica finale, per coerenza tra le due viste. */
+.riga-live.zona-champions {
+  background: rgba(42, 79, 176, 0.12);
+}
+.riga-live.zona-champions .rl-pos {
+  color: #2a4fb0;
+  font-weight: 700;
+}
+.riga-live.zona-europa {
+  background: rgba(217, 122, 31, 0.14);
+}
+.riga-live.zona-europa .rl-pos {
+  color: #d97a1f;
+  font-weight: 700;
+}
+.riga-live.zona-conference {
+  background: rgba(31, 158, 122, 0.14);
+}
+.riga-live.zona-conference .rl-pos {
+  color: #1f9e7a;
+  font-weight: 700;
+}
+.riga-live.zona-retro {
+  opacity: 0.78;
+}
+.riga-live.zona-retro .rl-pos {
   color: var(--rosso);
   font-weight: 700;
 }
-.riga-live.retro {
-  opacity: 0.72;
-}
+/* La riga dell'utente non copre più il colore di zona con uno sfondo
+   pieno (prima "spariva" la tinta Champions/Europa sotto): resta
+   riconoscibile con un anello verde attorno alla riga. */
 .riga-live.utente {
-  background: rgba(68, 102, 58, 0.2);
+  box-shadow: inset 0 0 0 2px var(--verde-scuro);
   border-radius: 4px;
   font-weight: 700;
 }

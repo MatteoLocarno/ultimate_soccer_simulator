@@ -14,12 +14,50 @@ const VELOCITA = {
 };
 const ROW = 30; // altezza riga classifica live (px)
 
-function verdetto(p) {
+// Zona di classifica per posizione (1-based), stessa logica per la
+// classifica live e quella finale: Champions/Europa/Conference in cima,
+// retrocessione negli ultimi 3 posti (su un girone a 20 squadre).
+function zonaClassifica(pos, n) {
+  if (pos <= 4) return "zona-champions";
+  if (pos === 5) return "zona-europa";
+  if (pos === 6) return "zona-conference";
+  if (pos > n - 3) return "zona-retro";
+  return "";
+}
+
+// Il verdetto di fine stagione non guarda solo la posizione, ma anche
+// QUANTO è stata sofferta o dominata: due squadre entrambe 15e possono
+// aver vissuto stagioni opposte (corsa salvezza risicata vs comoda
+// tranquillità), e un 11° posto è comunque metà classifica vera, non una
+// salvezza "per un pelo" solo perché non è tra le prime 10.
+function verdetto(classifica, p) {
+  const n = classifica.length;
   if (p === 1) return { classe: "scudetto", titolo: "🏆 SCUDETTO!", sotto: "Sei nella storia della Serie A." };
-  if (p <= 4) return { classe: "", titolo: "Qualificazione Champions", sotto: "Tra le grandi d'Europa." };
-  if (p <= 6) return { classe: "", titolo: "Qualificazione Europa League", sotto: "Stagione di alto livello." };
-  if (p <= 10) return { classe: "", titolo: "Metà classifica", sotto: "Tranquilla salvezza." };
-  if (p <= 17) return { classe: "", titolo: "Salvezza con brivido", sotto: "Ti sei salvato, ma soffrendo." };
+  if (p <= 4) return { classe: "", titolo: "Qualificazione Champions League", sotto: "Tra le grandi d'Europa." };
+  if (p === 5) return { classe: "", titolo: "Qualificazione Europa League", sotto: "Stagione di altissimo livello." };
+  if (p === 6) return { classe: "", titolo: "Qualificazione Conference League", sotto: "Un pass europeo comunque prezioso." };
+  if (p <= 8) return { classe: "", titolo: "Stagione di alto profilo", sotto: "Hai sfiorato l'Europa: quasi un'impresa." };
+
+  const posUltimaSalva = n - 3; // 17ª su 20
+  const puntiUtente = classifica[p - 1].punti;
+
+  if (p <= posUltimaSalva) {
+    const puntiPrimaRetrocessa = classifica[posUltimaSalva].punti;
+    const margine = puntiUtente - puntiPrimaRetrocessa;
+    if (p <= 13 || margine >= 12) {
+      return { classe: "", titolo: "Stagione di metà classifica", sotto: "Un campionato solido, senza troppi patemi." };
+    }
+    if (margine >= 5) {
+      return { classe: "", titolo: "Salvezza raggiunta con merito", sotto: "Qualche pensiero di troppo, ma mai davvero in bilico." };
+    }
+    return { classe: "", titolo: "Salvezza con brivido", sotto: "Ti sei salvato, ma soffrendo fino alla fine." };
+  }
+
+  const puntiUltimaSalva = classifica[posUltimaSalva - 1].punti;
+  const distacco = puntiUltimaSalva - puntiUtente;
+  if (distacco <= 3) {
+    return { classe: "", titolo: "Retrocessione beffarda", sotto: "Salvezza sfumata all'ultimo respiro." };
+  }
   return { classe: "", titolo: "Retrocessione", sotto: "Serie B il prossimo anno..." };
 }
 
@@ -46,7 +84,7 @@ function ClassificaAnimata({ snapshot }) {
         return (
           <div
             key={r.id}
-            className={`riga-live ${r.utente ? "utente" : ""} ${i < 4 ? "champions" : ""} ${i >= snapshot.length - 3 ? "retro" : ""}`}
+            className={`riga-live ${zonaClassifica(i + 1, snapshot.length)} ${r.utente ? "utente" : ""}`}
             style={{ top: i * ROW }}
           >
             <span className="rl-pos">{i + 1}</span>
@@ -131,7 +169,7 @@ export default function SchermataStagione({ rosa, allenatore, capitano, nomeSqua
   // ---------------------------------------------------------------- RECAP ---
   const posizione = classifica.findIndex((r) => r.utente) + 1;
   const mia = classifica[posizione - 1];
-  const v = verdetto(posizione);
+  const v = verdetto(classifica, posizione);
   const { migliore, peggiore } = estremi(partiteUtente);
   const titolari = rosa.filter((p) => p.slot.tipo === "titolare");
   const capitanoPick = titolari.find((p) => p.giocatore._id === capitano);
@@ -183,7 +221,7 @@ export default function SchermataStagione({ rosa, allenatore, capitano, nomeSqua
               {classifica.map((r, i) => {
                 const dr = r.gf - r.gs;
                 return (
-                  <tr key={r.id} className={`${r.utente ? "utente" : ""} ${i < 4 ? "zona-champions" : ""}`}>
+                  <tr key={r.id} className={`${zonaClassifica(i + 1, classifica.length)} ${r.utente ? "utente" : ""}`}>
                     <td className="sx pos">{i + 1}</td>
                     <td className="sx"><span className="nome-sq"><span className="pallino" style={{ background: r.colore }} />{r.nome}</span></td>
                     <td>{r.g}</td>
