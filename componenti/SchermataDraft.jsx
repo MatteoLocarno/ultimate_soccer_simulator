@@ -262,8 +262,12 @@ export default function SchermataDraft({ slot, squadre, allenatori: listaAllenat
 
               {inTransizione ? (
                 <div className="draft-transizione">
-                  <PalloneStorico size={40} className="draft-transizione-pallone" />
-                  <div className="draft-transizione-ombra" />
+                  <div className="draft-transizione-pista">
+                    <div className="draft-transizione-salto">
+                      <PalloneStorico size={40} className="draft-transizione-giro" />
+                    </div>
+                    <div className="draft-transizione-ombra" />
+                  </div>
                   <span className="draft-transizione-testo">Sto cercando la prossima squadra…</span>
                 </div>
               ) : (
