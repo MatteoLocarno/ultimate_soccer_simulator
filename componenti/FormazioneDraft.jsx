@@ -1,20 +1,21 @@
 // Formazione che si compone durante il draft: mostra gli 11 titolari (nelle
 // posizioni del modulo scelto) + i 7 panchinari + l'allenatore. Gli slot già
-// scelti mostrano il COGNOME (mai l'overall, nascosto fino al reveal). Lo slot
-// in corso pulsa.
+// scelti mostrano il COGNOME (mai l'overall, nascosto fino al reveal). Gli
+// slot ancora liberi il cui ruolo è tra i candidati proposti in quel
+// momento pulsano (indicano dove potrebbe atterrare la scelta).
 
 import { macroRuolo } from "@/logica/formazione";
 
-function stato(indice, pick, slotCorrente) {
+function stato(indice, pick, slotEvidenziati) {
   if (pick) return "pieno";
-  if (indice === slotCorrente) return "corrente";
+  if (slotEvidenziati && slotEvidenziati.has(indice)) return "corrente";
   return "vuoto";
 }
 
 export default function FormazioneDraft({
   slot,
   picks,
-  slotCorrente,
+  slotEvidenziati,
   allenatore,
   faseAllenatore,
 }) {
@@ -27,7 +28,7 @@ export default function FormazioneDraft({
       <div className="campo campo-costruzione">
         {titolari.map((s) => {
           const pick = picks[s.indice];
-          const st = stato(s.indice, pick, slotCorrente);
+          const st = stato(s.indice, pick, slotEvidenziati);
           return (
             <div
               key={s.indice}
@@ -47,7 +48,7 @@ export default function FormazioneDraft({
           <div className="rd-slots">
             {panchina.map((s) => {
               const pick = picks[s.indice];
-              const st = stato(s.indice, pick, slotCorrente);
+              const st = stato(s.indice, pick, slotEvidenziati);
               return (
                 <div key={s.indice} className={`rd-chip slot-${st}`}>
                   <span className="slot-disc">{s.ruolo}</span>

@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { NOMI_RUOLO } from "@/logica/formazione";
+import { NOMI_RUOLO, macroRuolo } from "@/logica/formazione";
 import { estraiCandidati, estraiAllenatori, chiavePersona } from "@/logica/draft";
 import FormazioneDraft from "@/componenti/FormazioneDraft";
 
@@ -11,69 +11,117 @@ const SKIP = [
   { tipo: "club", etichetta: "Stesso club", icona: "🛡️" },
 ];
 
+// Macro-ruoli (P/D/C/A) che non hanno più nessuno slot libero: non vanno
+// più proposti tra i candidati (non ci sarebbe dove metterli).
+function calcolaRuoliEsauriti(slot, assegnazioni) {
+  const totali = {};
+  const occupati = {};
+  for (const s of slot) {
+    const m = macroRuolo(s.ruolo) || "C";
+    totali[m] = (totali[m] || 0) + 1;
+    if (assegnazioni[s.indice]) occupati[m] = (occupati[m] || 0) + 1;
+  }
+  const esauriti = new Set();
+  for (const m of Object.keys(totali)) {
+    if ((occupati[m] || 0) >= totali[m]) esauriti.add(m);
+  }
+  return esauriti;
+}
+
+// Primo slot libero per il ruolo del giocatore scelto: titolare prima,
+// panchina dopo (nell'ordine con cui compaiono nel modulo).
+function trovaSlotLibero(slot, assegnazioni, ruolo) {
+  const macro = macroRuolo(ruolo);
+  const candidati = slot.filter((s) => macroRuolo(s.ruolo) === macro && !assegnazioni[s.indice]);
+  return candidati.find((s) => s.tipo === "titolare") || candidati[0] || null;
+}
+
 export default function SchermataDraft({ slot, squadre, allenatori: listaAllenatori, onCompletato }) {
   const totaleSlot = slot.length;
   const totaleScelte = totaleSlot + 2; // + allenatore + capitano
 
-  const [picks, setPicks] = useState([]);
+  // Indicizzata per slot.indice (non per ordine di scelta): un giocatore
+  // scelto può finire in un qualsiasi slot libero del suo ruolo, non
+  // necessariamente nel prossimo in ordine.
+  const [assegnazioni, setAssegnazioni] = useState(() => Array(totaleSlot).fill(null));
   const [candidati, setCandidati] = useState([]);
   const [squadraEstratta, setSquadraEstratta] = useState(null);
   const [allenatori, setAllenatori] = useState(null);
   const [allenatoreScelto, setAllenatoreScelto] = useState(null);
   const [skipUsati, setSkipUsati] = useState([]); // tipi di skip già usati (tutto il draft)
 
-  const faseGiocatori = picks.length < totaleSlot;
+  const numAssegnati = assegnazioni.filter(Boolean).length;
+  const faseGiocatori = numAssegnati < totaleSlot;
   const faseAllenatore = !faseGiocatori && !allenatoreScelto;
   const faseCapitano = !faseGiocatori && !!allenatoreScelto;
-  const slotCorrente = faseGiocatori ? slot[picks.length] : null;
 
-  const idsUsati = () => new Set(picks.map((p) => p.giocatore._id));
-  const personeUsate = () => new Set(picks.map((p) => chiavePersona(p.giocatore)));
+  const idsUsati = () => new Set(assegnazioni.filter(Boolean).map((a) => a.giocatore._id));
+  const personeUsate = () => new Set(assegnazioni.filter(Boolean).map((a) => chiavePersona(a.giocatore)));
 
-  // Nuovi candidati ad ogni slot: 10 giocatori dalla stessa squadra storica
-  // (scope "squadra", default); allenatori in fase coach.
+  // Nuovi candidati ad ogni assegnazione: 10 giocatori (ruoli misti) dalla
+  // stessa squadra storica (scope "squadra", default); allenatori in fase
+  // coach.
   useEffect(() => {
     if (faseGiocatori) {
-      const { candidati, squadra } = estraiCandidati(slot[picks.length].ruolo, idsUsati(), personeUsate(), squadre, { tipo: "squadra" });
+      const ruoliEsauriti = calcolaRuoliEsauriti(slot, assegnazioni);
+      const { candidati, squadra } = estraiCandidati(idsUsati(), personeUsate(), squadre, { tipo: "squadra" }, ruoliEsauriti);
       setCandidati(candidati);
       setSquadraEstratta(squadra || null);
     } else if (faseAllenatore) {
       setAllenatori(estraiAllenatori(4, listaAllenatori));
     }
-  }, [picks, allenatoreScelto]); // eslint-disable-line react-hooks/exhaustive-deps
+  }, [assegnazioni, allenatoreScelto]); // eslint-disable-line react-hooks/exhaustive-deps
 
   function usaSkip(tipo) {
     if (skipUsati.includes(tipo) || !faseGiocatori) return;
     setSkipUsati((s) => [...s, tipo]);
-    const { candidati, squadra } = estraiCandidati(slotCorrente.ruolo, idsUsati(), personeUsate(), squadre, { tipo });
+    const ruoliEsauriti = calcolaRuoliEsauriti(slot, assegnazioni);
+    const { candidati, squadra } = estraiCandidati(idsUsati(), personeUsate(), squadre, { tipo }, ruoliEsauriti);
     setCandidati(candidati);
     setSquadraEstratta(squadra || null);
   }
 
   function scegliGiocatore(c) {
-    setPicks((prev) => [
-      ...prev,
-      { slot: slot[prev.length], giocatore: { nome: c.nome, cognome: c.cognome, ruolo: c.ruolo, overall: c.overall, _id: c._id }, provenienza: c.provenienza },
-    ]);
+    const slotLibero = trovaSlotLibero(slot, assegnazioni, c.ruolo);
+    if (!slotLibero) return; // di sicurezza: non dovrebbe succedere
+    setAssegnazioni((prev) => {
+      const next = [...prev];
+      next[slotLibero.indice] = {
+        giocatore: { nome: c.nome, cognome: c.cognome, ruolo: c.ruolo, overall: c.overall, _id: c._id },
+        provenienza: c.provenienza,
+      };
+      return next;
+    });
   }
   function scegliAllenatore(a) { setAllenatoreScelto(a); }
-  function scegliCapitano(p) { onCompletato({ rosa: picks, allenatore: allenatoreScelto, capitano: p.giocatore._id }); }
+  function scegliCapitano(p) {
+    const rosa = assegnazioni.map((a, i) => ({ slot: slot[i], giocatore: a.giocatore, provenienza: a.provenienza }));
+    onCompletato({ rosa, allenatore: allenatoreScelto, capitano: p.giocatore._id });
+  }
 
   if (faseAllenatore && !allenatori) return null;
 
-  const scelteFatte = picks.length + (allenatoreScelto ? 1 : 0);
+  const scelteFatte = numAssegnati + (allenatoreScelto ? 1 : 0);
   const percentuale = Math.round((scelteFatte / totaleScelte) * 100);
-  const titolari = picks.filter((p) => p.slot.tipo === "titolare");
+  const titolari = assegnazioni
+    .map((a, i) => (a ? { slot: slot[i], giocatore: a.giocatore } : null))
+    .filter((p) => p && p.slot.tipo === "titolare");
 
-  let titolo, etichetta, etichettaPanchina;
+  // Slot ancora liberi il cui ruolo compare tra i candidati proposti ora:
+  // indicano dove potrebbe atterrare la prossima scelta.
+  const ruoliInGioco = new Set(candidati.map((c) => macroRuolo(c.ruolo)));
+  const slotEvidenziati = new Set(
+    slot.filter((s) => !assegnazioni[s.indice] && ruoliInGioco.has(macroRuolo(s.ruolo))).map((s) => s.indice)
+  );
+
+  let titolo, etichetta;
   if (faseGiocatori) {
-    titolo = `Scegli il tuo ${NOMI_RUOLO[slotCorrente.ruolo] || slotCorrente.ruolo}`;
-    etichetta = `${slotCorrente.tipo === "titolare" ? "Titolare" : "Panchina"} · ${NOMI_RUOLO[slotCorrente.ruolo] || slotCorrente.ruolo}`;
-    etichettaPanchina = slotCorrente.tipo === "panchina";
+    titolo = "Scegli un giocatore";
+    etichetta = `Scelta ${numAssegnati + 1} di ${totaleSlot}`;
   } else if (faseAllenatore) {
-    titolo = "Scegli l'allenatore"; etichetta = "Allenatore"; etichettaPanchina = true;
+    titolo = "Scegli l'allenatore"; etichetta = "Allenatore";
   } else {
-    titolo = "Scegli il capitano"; etichetta = "Capitano"; etichettaPanchina = true;
+    titolo = "Scegli il capitano"; etichetta = "Capitano";
   }
 
   return (
@@ -87,7 +135,7 @@ export default function SchermataDraft({ slot, squadre, allenatori: listaAllenat
         <div className="progresso"><div style={{ width: `${percentuale}%` }} /></div>
         <div className="draft-meta">
           <span>Scelta {scelteFatte + 1} di {totaleScelte}</span>
-          <span className={`badge-ruolo ${etichettaPanchina ? "tipo-panchina" : ""}`}>{etichetta}</span>
+          <span className="badge-ruolo">{etichetta}</span>
         </div>
       </div>
 
@@ -97,8 +145,9 @@ export default function SchermataDraft({ slot, squadre, allenatori: listaAllenat
             <>
               <p className="istruzione">
                 {squadraEstratta
-                  ? <>10 candidati da <b>{squadraEstratta.squadra} {squadraEstratta.anno}</b>.</>
-                  : "10 candidati per il ruolo."}{" "}
+                  ? <>10 candidati da <b>{squadraEstratta.squadra} {squadraEstratta.anno}</b>, ognuno col suo ruolo.</>
+                  : "10 candidati, ognuno col suo ruolo."}{" "}
+                Scegli chi vuoi: occuperà il primo posto libero del suo ruolo.{" "}
                 <b>L&apos;overall resta nascosto.</b>
               </p>
               <div className="skip-bar">
@@ -179,8 +228,8 @@ export default function SchermataDraft({ slot, squadre, allenatori: listaAllenat
           <h3 className="sezione-titolo">La tua squadra</h3>
           <FormazioneDraft
             slot={slot}
-            picks={picks}
-            slotCorrente={faseGiocatori ? picks.length : -1}
+            picks={assegnazioni}
+            slotEvidenziati={faseGiocatori ? slotEvidenziati : null}
             allenatore={allenatoreScelto}
             faseAllenatore={faseAllenatore}
           />
