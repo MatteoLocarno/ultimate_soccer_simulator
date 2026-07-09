@@ -41,14 +41,26 @@ function overallPerSlot(g, slotRuolo) {
   return Math.round(Math.max(...base.map((x) => x.overall)));
 }
 
+// Ruolo "vero" del giocatore (quello col miglior overall tra i suoi).
+function ruoloReale(g) {
+  return g.ruoli.reduce((a, b) => (b.overall > a.overall ? b : a)).ruolo;
+}
+
 function candidatoDa(squadra, g, slotRuolo) {
   const r = String(slotRuolo).toUpperCase();
   const macro = macroRuolo(slotRuolo);
   const esatto = g.ruoli.some((x) => x.ruolo.toUpperCase() === r);
   const macroOk = esatto || g.ruoli.some((x) => macroRuolo(x.ruolo) === macro);
+  // Compatibile col ruolo richiesto → mostrato/assegnato in quel ruolo
+  // (con l'overall "convertito" per lo slot). Non compatibile (giocatore di
+  // riempimento da una rosa troppo corta per quel ruolo) → mostrato col suo
+  // ruolo vero, non con quello dello slot: un centrocampista resta
+  // centrocampista anche se proposto durante il giro del portiere.
+  const ruolo = macroOk ? slotRuolo : ruoloReale(g);
+  const overall = macroOk ? overallPerSlot(g, slotRuolo) : overallPerSlot(g, ruolo);
   return {
-    nome: g.nome, cognome: g.cognome, ruolo: slotRuolo,
-    overall: overallPerSlot(g, slotRuolo), _id: idGiocatore(squadra, g), esatto, macroOk,
+    nome: g.nome, cognome: g.cognome, ruolo,
+    overall, _id: idGiocatore(squadra, g), esatto, macroOk,
     provenienza: { squadra: squadra.squadra, anno: squadra.anno, colore: squadra.colore },
   };
 }
