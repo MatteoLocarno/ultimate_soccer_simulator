@@ -219,6 +219,14 @@ function ordinaClassifica(a, b) {
   if (db !== da) return db - da;
   return b.gf - a.gf;
 }
+// Metodo del cerchio per il calendario all'italiana: la squadra in idx[0]
+// resta FISSA (solo le altre ruotano), quindi senza correzione gioca in
+// casa in OGNI giornata di andata e in trasferta in OGNI giornata di
+// ritorno (i%2 vale sempre 0 per lei, essendo sempre i=0) — è sempre
+// squadre[0], cioè la squadra dell'utente. Si alterna casa/trasferta per
+// lei in base alla parità del turno, così anche la sua squadra ha un
+// calendario vero (casa, trasferta, casa, trasferta...) invece di tutte le
+// giornate in casa seguite da tutte in trasferta.
 function calendario(n) {
   const idx = [...Array(n).keys()];
   const giornate = [];
@@ -226,7 +234,9 @@ function calendario(n) {
     const g = [];
     for (let i = 0; i < n / 2; i++) {
       const a = idx[i], b = idx[n - 1 - i];
-      g.push(i % 2 === 0 ? [a, b] : [b, a]);
+      let [casa, ospite] = i % 2 === 0 ? [a, b] : [b, a];
+      if (i === 0 && r % 2 === 1) [casa, ospite] = [ospite, casa];
+      g.push([casa, ospite]);
     }
     giornate.push(g);
     idx.splice(1, 0, idx.pop());
