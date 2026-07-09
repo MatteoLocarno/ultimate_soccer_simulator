@@ -10,9 +10,8 @@ const LEGGENDE = [
 
 const LINK_DONAZIONE = "https://gofund.me/d8fbfea23";
 
-// Pillola "offrici un caffè": fissa in alto a destra su ogni schermo
-// (className "dona-fissa", vedi app/layout.js). Fuori dal flusso del
-// documento apposta, così non sposta mai nient'altro nel layout.
+// Pillola "offrici un caffè": usata solo in home (SchermataHome), come
+// banner sopra lo stemma, dalla seconda visita/partita in poi.
 export default function DonaCaffe({ className = "" }) {
   const [i, setI] = useState(0);
 

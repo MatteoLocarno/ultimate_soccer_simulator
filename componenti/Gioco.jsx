@@ -3,7 +3,6 @@
 import { useEffect, useMemo, useState } from "react";
 import { costruisciSlot } from "@/logica/formazione";
 import { caricaAllenatoriEFormazioni, caricaSquadre, DATI_LOCALI } from "@/dati/caricaDati";
-import DonaCaffe from "@/componenti/DonaCaffe";
 import SchermataHome from "@/componenti/SchermataHome";
 import SchermataSetup, { COLORI } from "@/componenti/SchermataSetup";
 import SchermataDraft from "@/componenti/SchermataDraft";
@@ -67,10 +66,9 @@ export default function Gioco() {
 
   return (
     <main className={`app fase-${fase}`}>
-      {/* Fuori dalla home la pillola resta fissa in alto a destra; in home
-          ci pensa SchermataHome col suo banner sopra lo stemma. */}
-      {fase !== "home" && <DonaCaffe className="dona-fissa" />}
-
+      {/* Il widget "dona un caffè" si vede SOLO in home (SchermataHome, col
+          suo banner sopra lo stemma): altrove coprirebbe altri elementi
+          dell'interfaccia di gioco. */}
       {fase === "home" && <SchermataHome onAvvia={() => setFase("setup")} />}
 
       {fase === "setup" && (

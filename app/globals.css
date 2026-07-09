@@ -1673,25 +1673,6 @@ button {
   }
 }
 
-/* Fissa in alto a destra su ogni schermo, desktop e mobile: sta fuori dal
-   flusso del documento, quindi non sposta mai stemma/titolo/altro. */
-.dona-fissa {
-  position: fixed;
-  top: 12px;
-  right: 12px;
-  z-index: 900;
-  max-width: min(50vw, 340px);
-}
-@media (max-width: 640px) {
-  .dona-fissa {
-    top: 8px;
-    right: 8px;
-    font-size: 10px;
-    padding: 5px 10px;
-    gap: 3px;
-  }
-}
-
 /* Banner in home, nel flusso normale, subito sopra lo stemma (solo dalla
    seconda visita/partita in poi — vedi SchermataHome). A differenza della
    pillola fissa, qui è previsto lo spazio: non serve stare fuori flusso. */
