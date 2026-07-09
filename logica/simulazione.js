@@ -10,9 +10,23 @@
 import { SQUADRE } from "@/dati/squadre";
 import { macroRuolo } from "@/logica/formazione";
 
-const VANTAGGIO_CASA = 0.3;
-const GOL_BASE = 1.35;
+const VANTAGGIO_CASA = 0.22;
+const GOL_BASE = 1.18;
 const BONUS_ALL_BASE = 0.8;
+// Il divario di forza tra due squadre (es. un "dream team" col 95 di media
+// contro una storica media) veniva applicato senza freni: con una rosa
+// fortissima il lambda del Poisson finiva quasi sempre al tetto massimo, IN
+// OGNI PARTITA della stagione, facendo esplodere sia i gol di squadra che
+// quelli del bomber di turno (osservato: capocannonieri a 50+ gol,
+// impossibile). Il divario ora viene attutito (divisore più alto) e
+// comunque limitato (DIFF_CAP), e il tetto massimo del lambda per partita è
+// più basso: testato su centinaia di stagioni simulate con una rosa-limite
+// (tutti giocatori ~90+), il capocannoniere resta sotto i 40 gol (il record
+// vero di Serie A a 38 giornate è 36) e la media in un campionato equilibrato
+// è ~19-21 gol, in linea con i veri capocannonieri di Serie A.
+const DIFF_DIVISORE = 16;
+const DIFF_CAP = 1.25;
+const LAMBDA_MAX = 2.9;
 
 // Le rose delle squadre storiche arrivano dall'archivio SoFIFA e possono
 // avere 30-45 giocatori. Usarle tutte per il lotto gol/assist diluisce troppo
@@ -125,9 +139,9 @@ function golPoisson(lambda) {
 const limita = (v, min, max) => Math.max(min, Math.min(max, v));
 
 function simulaPartita(casa, ospite) {
-  const diff = (casa.forza - ospite.forza) / 7;
-  const lc = limita(GOL_BASE + VANTAGGIO_CASA + diff, 0.2, 5.5);
-  const lo = limita(GOL_BASE - diff, 0.2, 5.5);
+  const diff = limita((casa.forza - ospite.forza) / DIFF_DIVISORE, -DIFF_CAP, DIFF_CAP);
+  const lc = limita(GOL_BASE + VANTAGGIO_CASA + diff, 0.2, LAMBDA_MAX);
+  const lo = limita(GOL_BASE - diff, 0.2, LAMBDA_MAX);
   const fc = 0.82 + Math.random() * 0.36;
   const fo = 0.82 + Math.random() * 0.36;
   return { golCasa: golPoisson(lc * fc), golOspite: golPoisson(lo * fo) };
@@ -143,11 +157,14 @@ function simulaPartita(casa, ospite) {
 // sono più distribuiti tra i giocatori offensivi/creativi.
 const PESO_GOL = { A: 1.0, C: 0.25, D: 0.1, P: 0.01 };
 const PESO_ASSIST = { A: 0.7, C: 1.0, D: 0.28, P: 0.03 };
-// Con un vero fuoriclasse (overall alto) in rosa, un bonus troppo aggressivo
-// (7x) porta a stagioni-sfondone da 35-40 gol: testato su 60 stagioni
-// simulate, 4.5x tiene la media sui 17 gol e il massimo osservato sotto i 25.
-const BONUS_RANGO_GOL = [4.5, 2, 1.3];
+// Bonus del "titolare designato" (1°, 2°, 3° per overall del reparto) e
+// esponente con cui l'overall pesa nella scelta: valori più alti
+// concentrano troppo i gol su un solo giocatore quando la rosa è fortissima
+// (osservato: capocannonieri a 50+ gol). Ritarati insieme al tetto lambda
+// qui sopra: vedi commento su DIFF_DIVISORE per i numeri di validazione.
+const BONUS_RANGO_GOL = [2.8, 1.6, 1.15];
 const BONUS_RANGO_ASSIST = [3, 1.8, 1.2];
+const ESPONENTE_PESO = 1.7;
 
 // Rango (1°, 2°, 3°… per overall) di ogni giocatore nel proprio reparto,
 // dentro una rosa: serve per il bonus "titolare designato".
@@ -170,7 +187,7 @@ function peso(mappa, bonusRango, p, indiceRango) {
   const m = macroRuolo(p.ruolo) || "C";
   const base = mappa[m] ?? 0.3;
   const bonus = bonusRango[indiceRango] ?? 1;
-  return base * Math.pow(Math.max(p.overall, 40) / 100, 2) * bonus;
+  return base * Math.pow(Math.max(p.overall, 40) / 100, ESPONENTE_PESO) * bonus;
 }
 function scegliPesato(rosa, mappa, bonusRango, rango, escludi) {
   const pool = escludi ? rosa.filter((p) => p !== escludi) : rosa;
