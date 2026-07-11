@@ -6,6 +6,7 @@ import Stemma from "@/componenti/Stemma";
 import Campo from "@/componenti/Campo";
 import AndamentoChart from "@/componenti/AndamentoChart";
 import AdSlot from "@/componenti/AdSlot";
+import MercatoFineStagione from "@/componenti/MercatoFineStagione";
 
 const VELOCITA = {
   standard: { ms: 650, label: "Standard" },
@@ -99,7 +100,7 @@ function ClassificaAnimata({ snapshot }) {
   );
 }
 
-export default function SchermataStagione({ rosa, allenatore, capitano, nomeSquadra, colore, squadre, onRicomincia }) {
+export default function SchermataStagione({ rosa, allenatore, capitano, nomeSquadra, colore, squadre, allenatori, stagione = 1, onProssimaStagione, onRicomincia }) {
   const [sim] = useState(() => {
     const camp = costruisciCampionato(rosa, nomeSquadra, allenatore, colore, squadre);
     return simulaStagione(camp);
@@ -200,7 +201,7 @@ export default function SchermataStagione({ rosa, allenatore, capitano, nomeSqua
           <Stemma size={36} />
           <span className="marchio-nome">Dinastia<br />Scudetto</span>
         </div>
-        <span className="barra-fase">Fine stagione</span>
+        <span className="barra-fase">Stagione {stagione} · Fine</span>
       </header>
 
       <div className={`verdetto ${v.classe}`}>
@@ -290,12 +291,22 @@ export default function SchermataStagione({ rosa, allenatore, capitano, nomeSqua
         <AndamentoChart andamento={andamentoUtente} nSquadre={classifica.length} />
       </section>
 
+      {onProssimaStagione && (
+        <MercatoFineStagione
+          rosa={rosa}
+          allenatore={allenatore}
+          squadre={squadre}
+          allenatori={allenatori}
+          onProssima={onProssimaStagione}
+        />
+      )}
+
       {/* Solo a fine partita, dopo tutti i contenuti: l'utente ha finito di
           leggere il recap, nessun pulsante interattivo nelle vicinanze. */}
       <AdSlot slot="8853641825" />
 
       <div className="azione-fissa">
-        <button className="btn" onClick={onRicomincia}>Gioca ancora</button>
+        <button className="btn secondario" onClick={onRicomincia}>Ricomincia da capo</button>
       </div>
     </div>
   );

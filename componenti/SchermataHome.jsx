@@ -13,6 +13,7 @@ const CHIAVE_VISITATO = "ds_visitato";
 // Schermata iniziale: stemma + brand + regole rapide. La CTA porta al setup.
 export default function SchermataHome({ onAvvia }) {
   const [mostraDona, setMostraDona] = useState(false);
+  const [mostraOnline, setMostraOnline] = useState(false);
 
   useEffect(() => {
     try {
@@ -64,9 +65,44 @@ export default function SchermataHome({ onAvvia }) {
         </div>
       </div>
 
-      <button className="btn" onClick={onAvvia}>
-        Crea la tua squadra
-      </button>
+      <div className="modalita">
+        <button className="modalita-card singolo" onClick={onAvvia}>
+          <span className="mc-icona">🎮</span>
+          <span className="mc-testo">
+            <span className="mc-nome">Giocatore singolo</span>
+            <span className="mc-desc">
+              Pesca la rosa, simula la stagione e, a fine campionato, rilancia
+              con 3 cambi a sorte per la tua dinastia.
+            </span>
+          </span>
+          <span className="mc-freccia">›</span>
+        </button>
+
+        <button
+          className="modalita-card online"
+          onClick={() => setMostraOnline(true)}
+          aria-expanded={mostraOnline}
+        >
+          <span className="mc-icona">🌐</span>
+          <span className="mc-testo">
+            <span className="mc-nome">
+              Online <span className="mc-badge">Presto</span>
+            </span>
+            <span className="mc-desc">
+              Sfida altri allenatori in tempo reale con la tua squadra di
+              leggende.
+            </span>
+          </span>
+          <span className="mc-freccia">›</span>
+        </button>
+
+        {mostraOnline && (
+          <p className="modalita-avviso">
+            🚧 La modalità <b>Online</b> arriverà in futuro. Per ora costruisci
+            la tua dinastia in giocatore singolo!
+          </p>
+        )}
+      </div>
 
       {/* Solo qui in home, lontano dal pulsante: nessun rischio di click
           accidentali mentre l'utente naviga il gioco. */}

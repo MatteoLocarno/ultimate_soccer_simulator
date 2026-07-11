@@ -21,6 +21,8 @@ export default function Gioco() {
   const [rosa, setRosa] = useState([]);
   const [allenatore, setAllenatore] = useState(null);
   const [capitano, setCapitano] = useState(null);
+  // Numero di stagione della dinastia (aumenta ad ogni "prossima stagione").
+  const [stagione, setStagione] = useState(1);
 
   // Dati del gioco: parte dai dati locali (gioco subito disponibile) e prova a
   // sostituirli con quelli di Supabase se la connessione va a buon fine.
@@ -71,7 +73,18 @@ export default function Gioco() {
     setRosa([]);
     setAllenatore(null);
     setCapitano(null);
+    setStagione(1);
     setFase("home");
+  }
+
+  // Dinastia: la rosa (eventualmente modificata al mercato) prosegue nella
+  // stagione successiva. Si rimonta SchermataStagione (via key) per far
+  // ripartire una nuova simulazione con la squadra aggiornata.
+  function prossimaStagione(nuovaRosa, nuovoAllenatore) {
+    setRosa(nuovaRosa);
+    setAllenatore(nuovoAllenatore);
+    setStagione((n) => n + 1);
+    window.scrollTo(0, 0);
   }
 
   const nomeEffettivo = nomeSquadra.trim() || "La tua squadra";
@@ -122,12 +135,16 @@ export default function Gioco() {
 
       {fase === "stagione" && (
         <SchermataStagione
+          key={stagione}
           rosa={rosa}
           allenatore={allenatore}
           capitano={capitano}
           nomeSquadra={nomeEffettivo}
           colore={colore}
           squadre={dati.squadre}
+          allenatori={dati.allenatori}
+          stagione={stagione}
+          onProssimaStagione={prossimaStagione}
           onRicomincia={ricomincia}
         />
       )}
