@@ -67,6 +67,40 @@ function roundRect(ctx, x, y, w, h, r) {
   ctx.closePath();
 }
 
+// Carica il logo VERO del sito (public/logo.svg) come immagine, così lo stemma
+// nel PNG è identico a quello del gioco (stelle sopra, scudo tricolore sotto).
+// Si rimuove lo sfondo quadrato dell'SVG per farlo fondere col pannello.
+let _logoPromise = null;
+function ottieniLogo() {
+  if (!_logoPromise) {
+    _logoPromise = (async () => {
+      try {
+        const res = await fetch("/logo.svg");
+        let txt = await res.text();
+        txt = txt.replace(/<rect[^>]*rx="96"[^>]*\/>/, ""); // via lo sfondo quadrato
+        const url = "data:image/svg+xml;charset=utf-8," + encodeURIComponent(txt);
+        const img = new Image();
+        await new Promise((ok, no) => { img.onload = () => ok(); img.onerror = no; img.src = url; });
+        return img;
+      } catch {
+        return null;
+      }
+    })();
+  }
+  return _logoPromise;
+}
+
+// Disegna il logo centrato in (cx, cy) con l'altezza indicata (l'emblema
+// stelle+scudo nell'SVG occupa y≈72..446 → ~374 unità, centro verticale ~259).
+function mettiLogo(ctx, logo, cx, cy, altezza) {
+  if (logo) {
+    const sc = altezza / 374;
+    ctx.drawImage(logo, cx - 256 * sc, cy - 259 * sc, 512 * sc, 512 * sc);
+  } else {
+    disegnaStemma(ctx, cx, cy, altezza * 0.53);
+  }
+}
+
 // Stemma: scudo tricolore con 3 stelline dorate (versione essenziale del logo).
 function disegnaStemma(ctx, cx, cy, w) {
   const h = w * 1.16;
@@ -152,6 +186,7 @@ function testoCampo(ctx, testo, cx, y, maxW, lineH) {
 // ── Disegno principale ──────────────────────────────────────────────────────
 export async function generaCanvasFormazione({ titolari, capitanoId, allenatore, modulo, forza }) {
   await pronto();
+  const logo = await ottieniLogo();
 
   const W = 1080;
   const H = 1500;
@@ -177,17 +212,17 @@ export async function generaCanvasFormazione({ titolari, capitanoId, allenatore,
   roundRect(ctx, 48, 48, W - 96, H - 96, 12);
   ctx.stroke();
 
-  // Header: stemma + titolo
-  disegnaStemma(ctx, W / 2, 148, 100);
+  // Header: stemma (logo vero) + titolo
+  mettiLogo(ctx, logo, W / 2, 150, 150);
   ctx.fillStyle = COL.testo;
   ctx.font = `700 58px ${FONT}`;
-  ctx.fillText("DINASTIA SCUDETTO", W / 2, 254);
+  ctx.fillText("DINASTIA SCUDETTO", W / 2, 262);
   ctx.fillStyle = COL.testoSoft;
   ctx.font = `500 22px ${FONT}`;
-  ctx.fillText("LA MIA FORMAZIONE — DRAFT STORICO DI SERIE A", W / 2, 292);
+  ctx.fillText("LA MIA FORMAZIONE — DRAFT STORICO DI SERIE A", W / 2, 300);
 
   // Strip modulo + forza (ben staccata dal sottotitolo)
-  const stripY = 344;
+  const stripY = 350;
   ctx.fillStyle = COL.oro;
   ctx.font = `600 32px ${FONT}`;
   ctx.fillText(`MODULO ${modulo?.nome || ""}`.trim(), W / 2 - 155, stripY);
@@ -252,13 +287,34 @@ export async function generaCanvasFormazione({ titolari, capitanoId, allenatore,
   const spanY = maxY - minY || 1;
   const yTop = pY + 62; // attaccanti appena sotto la linea alta
   const yBot = pY + pH - 96; // portiere, con spazio sotto per la targhetta
-  for (const p of titolari) {
-    const cx = pX + padX + ((pW - padX * 2) * p.slot.x) / 100;
-    const cy = yTop + ((p.slot.y - minY) / spanY) * (yBot - yTop);
+  const r = 38;
+
+  // Posizioni sullo schermo di ogni titolare (per calcolare le distanze).
+  const punti = titolari.map((p) => ({
+    p,
+    cx: pX + padX + ((pW - padX * 2) * p.slot.x) / 100,
+    cy: yTop + ((p.slot.y - minY) / spanY) * (yBot - yTop),
+  }));
+
+  // Larghezza massima della targhetta per ciascun giocatore: mai oltre lo
+  // spazio disponibile fino al vicino di FILA (stessa altezza), così due nomi
+  // affiancati non si sovrappongono mai (es. i 5 di centrocampo del 3-5-2).
+  function larghezzaMax(i) {
+    let gap = Infinity;
+    for (let j = 0; j < punti.length; j++) {
+      if (j === i) continue;
+      if (Math.abs(punti[i].cy - punti[j].cy) < 58) {
+        gap = Math.min(gap, Math.abs(punti[i].cx - punti[j].cx));
+      }
+    }
+    if (!Number.isFinite(gap)) return 156;
+    return Math.max(58, Math.min(156, gap - 10));
+  }
+
+  // 1) dischi + overall + fascia capitano
+  punti.forEach(({ p, cx, cy }) => {
     const ovr = p.giocatore.overall;
     const f = fasciaOvr(ovr);
-    const r = 40;
-    // disco overall
     ctx.beginPath();
     ctx.arc(cx, cy, r, 0, Math.PI * 2);
     ctx.fillStyle = f.disco;
@@ -267,44 +323,45 @@ export async function generaCanvasFormazione({ titolari, capitanoId, allenatore,
     ctx.strokeStyle = f.bordo;
     ctx.stroke();
     ctx.fillStyle = f.testo;
-    ctx.font = `700 36px ${FONT}`;
+    ctx.font = `700 34px ${FONT}`;
     ctx.fillText(String(ovr), cx, cy + 2);
-    // fascia capitano
     if (capitanoId != null && p.giocatore._id === capitanoId) {
-      const bx = cx + r * 0.78;
-      const by = cy - r * 0.78;
+      const bx = cx + r * 0.8;
+      const by = cy - r * 0.8;
       ctx.beginPath();
-      ctx.arc(bx, by, 15, 0, Math.PI * 2);
+      ctx.arc(bx, by, 14, 0, Math.PI * 2);
       ctx.fillStyle = COL.oro;
       ctx.fill();
       ctx.lineWidth = 2.5;
       ctx.strokeStyle = "#6e4d10";
       ctx.stroke();
       ctx.fillStyle = COL.bianco;
-      ctx.font = `700 18px ${FONT}`;
+      ctx.font = `700 17px ${FONT}`;
       ctx.fillText("C", bx, by + 1);
     }
-    // targhetta col cognome (larghezza contenuta: due targhette della stessa
-    // fila non devono toccarsi, es. i due centrali)
+  });
+
+  // 2) targhette col cognome (dopo i dischi, così stanno sempre sopra)
+  punti.forEach(({ p, cx, cy }, i) => {
     const nome = cognomeDi(p).toUpperCase();
-    ctx.font = `600 24px ${FONT}`;
-    const tw = Math.min(ctx.measureText(nome).width + 18, 150);
-    const plY = cy + r + 19;
+    const maxW = larghezzaMax(i);
+    let fs = 24;
+    ctx.font = `600 ${fs}px ${FONT}`;
+    while (ctx.measureText(nome).width + 16 > maxW && fs > 13) {
+      fs -= 1;
+      ctx.font = `600 ${fs}px ${FONT}`;
+    }
+    const tw = Math.min(maxW, ctx.measureText(nome).width + 16);
+    const plY = cy + r + 18;
     ctx.fillStyle = COL.pannello;
-    roundRect(ctx, cx - tw / 2, plY - 18, tw, 34, 7);
+    roundRect(ctx, cx - tw / 2, plY - 17, tw, 33, 7);
     ctx.fill();
     ctx.lineWidth = 1.5;
     ctx.strokeStyle = COL.bordoScuro;
     ctx.stroke();
     ctx.fillStyle = COL.testo;
-    // se troppo lungo, riduci un filo il font
-    let fs = 24;
-    while (ctx.measureText(nome).width > tw - 14 && fs > 15) {
-      fs -= 1;
-      ctx.font = `600 ${fs}px ${FONT}`;
-    }
     ctx.fillText(nome, cx, plY);
-  }
+  });
 
   // ── Allenatore ──
   if (allenatore) {
@@ -321,27 +378,13 @@ export async function generaCanvasFormazione({ titolari, capitanoId, allenatore,
     );
   }
 
-  // ── Footer: rimando al sito ──
-  const dividerY = H - 118; // ~1382
-  ctx.beginPath();
-  ctx.moveTo(120, dividerY);
-  ctx.lineTo(W - 120, dividerY);
-  ctx.strokeStyle = COL.bordo;
-  ctx.lineWidth = 2;
-  ctx.stroke();
-  ctx.fillStyle = COL.oro;
-  ctx.font = `700 42px ${FONT}`;
-  ctx.fillText(SITO, W / 2, H - 76);
-  ctx.fillStyle = COL.testoSoft;
-  ctx.font = `italic 25px ${FONT_SERIF}`;
-  ctx.fillText("Il draft delle leggende della Serie A", W / 2, H - 40);
-
+  disegnaFooter(ctx, W, H);
   return canvas;
 }
 
 // Sfondo + cornice doppia + testata (stemma, titolo, sottotitolo). Condivisa
 // tra le card (formazione e bilancio).
-function disegnaCorniceETesta(ctx, W, H, sottotitolo) {
+function disegnaCorniceETesta(ctx, W, H, sottotitolo, logo) {
   ctx.fillStyle = COL.sfondo;
   ctx.fillRect(0, 0, W, H);
   ctx.fillStyle = COL.pannello;
@@ -356,18 +399,18 @@ function disegnaCorniceETesta(ctx, W, H, sottotitolo) {
   roundRect(ctx, 48, 48, W - 96, H - 96, 12);
   ctx.stroke();
 
-  disegnaStemma(ctx, W / 2, 148, 100);
+  mettiLogo(ctx, logo, W / 2, 150, 150);
   ctx.textAlign = "center";
   ctx.fillStyle = COL.testo;
   ctx.font = `700 58px ${FONT}`;
-  ctx.fillText("DINASTIA SCUDETTO", W / 2, 254);
+  ctx.fillText("DINASTIA SCUDETTO", W / 2, 262);
   ctx.fillStyle = COL.testoSoft;
   ctx.font = `500 22px ${FONT}`;
-  ctx.fillText(sottotitolo, W / 2, 292);
+  ctx.fillText(sottotitolo, W / 2, 300);
 }
 
 function disegnaFooter(ctx, W, H) {
-  const dividerY = H - 118;
+  const dividerY = H - 138;
   ctx.beginPath();
   ctx.moveTo(120, dividerY);
   ctx.lineTo(W - 120, dividerY);
@@ -377,10 +420,10 @@ function disegnaFooter(ctx, W, H) {
   ctx.textAlign = "center";
   ctx.fillStyle = COL.oro;
   ctx.font = `700 42px ${FONT}`;
-  ctx.fillText(SITO, W / 2, H - 76);
+  ctx.fillText(SITO, W / 2, H - 92);
   ctx.fillStyle = COL.testoSoft;
   ctx.font = `italic 25px ${FONT_SERIF}`;
-  ctx.fillText("Il draft delle leggende della Serie A", W / 2, H - 40);
+  ctx.fillText("Il draft delle leggende della Serie A", W / 2, H - 56);
 }
 
 async function avviaDownload(canvas, nomeFile) {
@@ -443,6 +486,7 @@ function boxMvp(ctx, x, y, w, h, etichetta, nome, valore) {
 
 export async function generaCanvasDinastia(d) {
   await pronto();
+  const logo = await ottieniLogo();
   const W = 1080;
   const H = 1500;
   const canvas = document.createElement("canvas");
@@ -451,7 +495,7 @@ export async function generaCanvasDinastia(d) {
   const ctx = canvas.getContext("2d");
   ctx.textBaseline = "middle";
 
-  disegnaCorniceETesta(ctx, W, H, "IL BILANCIO DELLA DINASTIA");
+  disegnaCorniceETesta(ctx, W, H, "IL BILANCIO DELLA DINASTIA", logo);
 
   // Verdetto + nome squadra
   const scudetti = d.scudetti || 0;
@@ -469,9 +513,9 @@ export async function generaCanvasDinastia(d) {
   // Scudetti (scudi dorati)
   if (scudetti > 0) {
     const mostra = Math.min(scudetti, 6);
-    const passo = 74;
+    const passo = 78;
     const startX = W / 2 - ((mostra - 1) * passo) / 2;
-    for (let i = 0; i < mostra; i++) disegnaStemma(ctx, startX + i * passo, 452, 52);
+    for (let i = 0; i < mostra; i++) mettiLogo(ctx, logo, startX + i * passo, 452, 92);
     if (scudetti > 6) {
       ctx.fillStyle = COL.testo;
       ctx.font = `700 30px ${FONT}`;

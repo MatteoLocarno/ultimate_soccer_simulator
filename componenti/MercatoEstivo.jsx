@@ -228,6 +228,7 @@ export default function MercatoEstivo({ rosa, allenatore, capitano, squadre, all
       {selezione && (
         <div className="dado-overlay" role="dialog" aria-modal="true">
           <div className="dado-pannello">
+            {faseDado === "scelta" && <span className="dado-badge-emoji" aria-hidden="true">🎲</span>}
             <button className="dado-chiudi" onClick={chiudiPicker} aria-label="Annulla">×</button>
 
             {faseDado !== "scelta" ? (
@@ -248,8 +249,7 @@ export default function MercatoEstivo({ rosa, allenatore, capitano, squadre, all
             ) : (
               <>
                 <div className="dado-esito">
-                  <Dado valore={dadoVal} size={38} />
-                  <span>Overall nascosto: scegli e scoprilo una volta inserito.</span>
+                  <span>🎲 Estrazione fatta! Overall nascosto: scegli e scoprilo una volta inserito.</span>
                 </div>
                 <div className="dado-candidati">
                   {candidati.map((c) => (
