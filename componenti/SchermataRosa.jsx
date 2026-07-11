@@ -1,4 +1,8 @@
+"use client";
+
+import { useState } from "react";
 import { forzaUtente } from "@/logica/simulazione";
+import { scaricaFormazionePng } from "@/logica/immagineFormazione";
 import Campo from "@/componenti/Campo";
 
 const ORDINE_RUOLI = ["P", "D", "C", "A"];
@@ -23,6 +27,25 @@ export default function SchermataRosa({
 
   const titolari = rosa.filter((p) => p.slot.tipo === "titolare");
   const panchina = rosa.filter((p) => p.slot.tipo === "panchina");
+
+  const [statoPng, setStatoPng] = useState("idle"); // idle | creazione | errore
+
+  async function scaricaImmagine() {
+    if (statoPng === "creazione") return;
+    setStatoPng("creazione");
+    try {
+      const ok = await scaricaFormazionePng({
+        titolari,
+        capitanoId: capitano,
+        allenatore,
+        modulo,
+        forza,
+      });
+      setStatoPng(ok ? "idle" : "errore");
+    } catch {
+      setStatoPng("errore");
+    }
+  }
 
   function gruppoPerRuolo(elenco) {
     return ORDINE_RUOLI.map((ruolo) => ({
@@ -64,6 +87,17 @@ export default function SchermataRosa({
         Formazione <span>{modulo?.nome}</span>
       </h3>
       <Campo titolari={titolari} capitanoId={capitano} />
+
+      <div className="condividi-formazione">
+        <button className="btn-condividi" onClick={scaricaImmagine} disabled={statoPng === "creazione"}>
+          {statoPng === "creazione" ? "Creazione immagine…" : "📸 Scarica PNG da condividere"}
+        </button>
+        <p className="condividi-nota">
+          {statoPng === "errore"
+            ? "Non è stato possibile creare l'immagine. Riprova."
+            : "Immagine curata con i tuoi overall e il rimando al sito, pronta per gli amici."}
+        </p>
+      </div>
 
       {panchina.length > 0 && (
         <section className="reparto reparto-panchina">

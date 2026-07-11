@@ -1216,19 +1216,23 @@ button {
 .tok-nome {
   font-family: var(--font-titolo);
   font-size: 11px;
-  letter-spacing: 0.3px;
+  letter-spacing: 0.2px;
   text-transform: uppercase;
   text-align: center;
-  line-height: 1.05;
-  max-width: 100%;
-  padding: 2px 5px;
-  border-radius: 2px;
+  line-height: 1.08;
+  /* più larga del pallino e a capo su 2 righe: i cognomi lunghi ora si
+     leggono per intero invece di essere troncati con "…" */
+  max-width: clamp(64px, 21vw, 96px);
+  padding: 2px 6px;
+  border-radius: 3px;
   color: var(--testo);
   background: var(--pannello);
   border: 1px solid #2d2417;
-  white-space: nowrap;
+  box-shadow: 0 1px 0 rgba(0, 0, 0, 0.2);
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
   overflow: hidden;
-  text-overflow: ellipsis;
 }
 
 .reparto-panchina .riga-giocatore {
@@ -1524,18 +1528,21 @@ button {
 }
 .slot-lbl {
   font-family: var(--font-titolo);
-  font-size: clamp(8.5px, 2.6vw, 10px);
+  font-size: clamp(9.5px, 2.9vw, 11px);
   text-transform: uppercase;
-  letter-spacing: 0.3px;
+  letter-spacing: 0.2px;
+  line-height: 1.05;
   padding: 1px 5px;
-  border-radius: 2px;
+  border-radius: 3px;
   background: var(--pannello);
   border: 1px solid #2d2417;
   color: var(--testo);
-  max-width: clamp(50px, 17vw, 72px);
-  white-space: nowrap;
+  text-align: center;
+  max-width: clamp(58px, 19vw, 84px);
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
   overflow: hidden;
-  text-overflow: ellipsis;
 }
 .slot-vuoto .slot-disc {
   background: rgba(243, 236, 210, 0.1);
@@ -1563,6 +1570,160 @@ button {
     transform: scale(1.14);
     box-shadow: 0 0 0 7px rgba(168, 118, 26, 0);
   }
+}
+
+/* ── Condivisione PNG della formazione (schermata reveal) ──────────────── */
+.condividi-formazione {
+  margin: 16px 0 4px;
+  text-align: center;
+}
+.btn-condividi {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 12px 20px;
+  border: 2px solid var(--oro);
+  border-radius: 10px;
+  background: var(--pannello);
+  color: var(--testo);
+  font-family: var(--font-titolo);
+  font-size: 16px;
+  letter-spacing: 0.5px;
+  text-transform: uppercase;
+  cursor: pointer;
+  box-shadow: 3px 3px 0 rgba(0, 0, 0, 0.18);
+  transition: transform 0.08s, background 0.12s;
+}
+.btn-condividi:hover:not(:disabled) {
+  background: rgba(168, 118, 26, 0.14);
+}
+.btn-condividi:active:not(:disabled) {
+  transform: translate(1px, 1px);
+  box-shadow: 2px 2px 0 rgba(0, 0, 0, 0.18);
+}
+.btn-condividi:disabled {
+  opacity: 0.7;
+  cursor: default;
+}
+.condividi-nota {
+  margin: 8px auto 0;
+  max-width: 460px;
+  font-size: 12.5px;
+  color: var(--testo-soft);
+}
+
+/* ── Piazzamento: scegliere DOVE mettere il giocatore selezionato ───────── */
+/* Quando è attivo, il campo abbassa gli slot non scelti e rende cliccabili
+   (pulsanti) quelli dove il giocatore può andare. */
+.formazione-draft.in-piazzamento .slot-pos:not(.slot-piazzabile) {
+  opacity: 0.45;
+}
+.slot-piazzabile {
+  cursor: pointer;
+}
+.slot-piazzabile .slot-disc {
+  background: var(--oro);
+  border: 2px solid #6e4d10;
+  color: #2d2417;
+  animation: pulsa 1.05s ease-in-out infinite;
+}
+.slot-piazza-piu {
+  position: absolute;
+  top: -7px;
+  right: -7px;
+  width: 18px;
+  height: 18px;
+  border-radius: 50%;
+  background: var(--verde);
+  color: var(--pannello);
+  font-size: 12px;
+  font-weight: 700;
+  line-height: 18px;
+  text-align: center;
+  box-shadow: 1px 1px 0 rgba(0, 0, 0, 0.3);
+}
+.slot-piazzabile:hover .slot-disc,
+.slot-piazzabile:focus-visible .slot-disc {
+  transform: scale(1.12);
+  outline: none;
+}
+
+/* Pannello di scelta posizione (colonna sinistra del draft) */
+.piazzamento {
+  display: grid;
+  gap: 12px;
+  padding: 16px;
+  border: 2px solid var(--oro);
+  border-radius: 10px;
+  background: var(--pannello);
+  box-shadow: 3px 3px 0 rgba(0, 0, 0, 0.2);
+}
+.piazzamento-testo {
+  font-family: var(--font-titolo);
+  font-size: 17px;
+  line-height: 1.25;
+  color: var(--testo);
+}
+.piazzamento-hint {
+  font-size: 12.5px;
+  color: var(--testo-soft);
+  margin-top: -4px;
+}
+.piazzamento-opzioni {
+  display: grid;
+  gap: 8px;
+}
+.piazzamento-opz {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 11px 12px;
+  border: 1px solid #2d2417;
+  border-radius: 8px;
+  background: rgba(243, 236, 210, 0.06);
+  color: var(--testo);
+  text-align: left;
+  cursor: pointer;
+  transition: background 0.12s, transform 0.08s;
+}
+.piazzamento-opz:hover {
+  background: rgba(168, 118, 26, 0.16);
+}
+.piazzamento-opz:active {
+  transform: translateY(1px);
+}
+.piazzamento-opz-tag {
+  flex: 0 0 auto;
+  min-width: 34px;
+  padding: 3px 7px;
+  border-radius: 5px;
+  background: var(--oro);
+  color: #2d2417;
+  font-family: var(--font-titolo);
+  font-size: 12px;
+  text-align: center;
+}
+.piazzamento-opz-nome {
+  flex: 1;
+  font-size: 14px;
+}
+.piazzamento-opz .freccia {
+  color: var(--verde);
+  font-weight: 700;
+}
+.piazzamento-annulla {
+  justify-self: start;
+  padding: 7px 14px;
+  border: 1px solid var(--testo-soft);
+  border-radius: 8px;
+  background: transparent;
+  color: var(--testo-soft);
+  font-size: 13px;
+  cursor: pointer;
+}
+.piazzamento-annulla:hover {
+  color: var(--testo);
+  border-color: var(--testo);
 }
 
 /* riserve + allenatore sotto al campo */
@@ -2013,16 +2174,21 @@ button {
   animation: spuntaTok 0.45s ease both;
 }
 .campo-schieramento .tok-ovr {
-  width: clamp(30px, 10vw, 42px);
-  height: clamp(30px, 10vw, 42px);
-  font-size: clamp(12px, 3.6vw, 18px);
+  width: clamp(32px, 10.5vw, 44px);
+  height: clamp(32px, 10.5vw, 44px);
+  font-size: clamp(13px, 3.8vw, 18px);
 }
 .campo-schieramento .tok-nome {
-  font-size: clamp(9px, 2.6vw, 11px);
-  padding: 2px 4px;
+  font-size: clamp(10.5px, 3vw, 12.5px);
+  padding: 2px 6px;
+  max-width: clamp(70px, 23vw, 104px);
 }
 .campo-mini .token {
   width: 48px;
+}
+.campo-mini .tok-nome {
+  font-size: clamp(9px, 2.6vw, 10px) !important;
+  max-width: clamp(52px, 17vw, 74px);
 }
 @keyframes spuntaTok {
   from {

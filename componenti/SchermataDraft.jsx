@@ -80,6 +80,28 @@ function trovaSlotLibero(slot, assegnazioni, ruolo) {
   return null;
 }
 
+// TUTTI gli slot liberi dove il giocatore può andare, allo stesso livello di
+// priorità di trovaSlotLibero: se ci sono slot col ruolo ESATTO libero si
+// offrono quelli (es. i due DC), altrimenti tutti i compatibili per reparto.
+// Serve per far scegliere all'utente DOVE schierarlo quando c'è più di
+// un'opzione.
+function slotLiberiCompatibili(slot, assegnazioni, ruolo) {
+  const r = String(ruolo).toUpperCase();
+  const macro = macroRuolo(ruolo);
+  const aperti = slot.filter((s) => !assegnazioni[s.indice]);
+  const esatti = aperti.filter((s) => String(s.ruolo).toUpperCase() === r);
+  if (esatti.length) return esatti;
+  return aperti.filter((s) => macroRuolo(s.ruolo) === macro);
+}
+
+// Lato del campo dedotto dalla coordinata x (0 = sinistra, 100 = destra),
+// per etichettare le posizioni tra cui scegliere ("Difensore centrale · sx").
+function latoSlot(x) {
+  if (x < 42) return "sinistra";
+  if (x > 58) return "destra";
+  return "centrale";
+}
+
 export default function SchermataDraft({ slot, squadre, allenatori: listaAllenatori, onCompletato }) {
   const totaleSlot = slot.length;
   const totaleScelte = totaleSlot + 2; // + allenatore + capitano
@@ -92,6 +114,9 @@ export default function SchermataDraft({ slot, squadre, allenatori: listaAllenat
   const [squadraEstratta, setSquadraEstratta] = useState(null);
   const [allenatori, setAllenatori] = useState(null);
   const [allenatoreScelto, setAllenatoreScelto] = useState(null);
+  // Giocatore selezionato ma non ancora piazzato: quando ci sono più slot
+  // liberi per il suo ruolo, l'utente sceglie DOVE metterlo (es. i due DC).
+  const [giocatoreDaPiazzare, setGiocatoreDaPiazzare] = useState(null);
   const [skipUsati, setSkipUsati] = useState([]); // tipi di skip già usati (tutto il draft)
   // Reparti chiusi "a ventaglio" nella lista candidati (per macro-ruolo):
   // di default tutti chiusi, si aprono/chiudono al tocco del titolo.
@@ -144,7 +169,7 @@ export default function SchermataDraft({ slot, squadre, allenatori: listaAllenat
   }, [assegnazioni, allenatoreScelto]); // eslint-disable-line react-hooks/exhaustive-deps
 
   function usaSkip(tipo) {
-    if (skipUsati.includes(tipo) || !faseGiocatori || inTransizione) return;
+    if (skipUsati.includes(tipo) || !faseGiocatori || inTransizione || giocatoreDaPiazzare) return;
     setSkipUsati((s) => [...s, tipo]);
     const ruoliEsauriti = calcolaRuoliEsauriti(slot, assegnazioni);
     const ruoliDettagliatiAperti = calcolaRuoliDettagliatiAperti(slot, assegnazioni);
@@ -152,18 +177,26 @@ export default function SchermataDraft({ slot, squadre, allenatori: listaAllenat
     applicaConTransizione(nuovi, squadra);
   }
 
-  function scegliGiocatore(c) {
-    if (inTransizione) return;
-    const slotLibero = trovaSlotLibero(slot, assegnazioni, c.ruolo);
-    if (!slotLibero) return; // di sicurezza: non dovrebbe succedere
+  function piazzaGiocatore(c, indice) {
     setAssegnazioni((prev) => {
       const next = [...prev];
-      next[slotLibero.indice] = {
+      next[indice] = {
         giocatore: { nome: c.nome, cognome: c.cognome, ruolo: c.ruolo, overall: c.overall, _id: c._id },
         provenienza: c.provenienza,
       };
       return next;
     });
+    setGiocatoreDaPiazzare(null);
+  }
+
+  function scegliGiocatore(c) {
+    if (inTransizione || giocatoreDaPiazzare) return;
+    const compatibili = slotLiberiCompatibili(slot, assegnazioni, c.ruolo);
+    if (compatibili.length === 0) return; // di sicurezza: non dovrebbe succedere
+    // Una sola posizione possibile: si piazza subito (nessuna scelta da fare).
+    if (compatibili.length === 1) { piazzaGiocatore(c, compatibili[0].indice); return; }
+    // Più posizioni: l'utente sceglie dove schierarlo.
+    setGiocatoreDaPiazzare(c);
   }
   function scegliAllenatore(a) { setAllenatoreScelto(a); }
   function scegliCapitano(p) {
@@ -185,6 +218,13 @@ export default function SchermataDraft({ slot, squadre, allenatori: listaAllenat
   const slotEvidenziati = new Set(
     slot.filter((s) => !assegnazioni[s.indice] && ruoliInGioco.has(macroRuolo(s.ruolo))).map((s) => s.indice)
   );
+
+  // In fase di piazzamento: gli slot tra cui l'utente può scegliere dove
+  // schierare il giocatore selezionato (diventano cliccabili sul campo).
+  const opzioniPiazzamento = giocatoreDaPiazzare
+    ? slotLiberiCompatibili(slot, assegnazioni, giocatoreDaPiazzare.ruolo)
+    : [];
+  const slotPiazzabili = new Set(opzioniPiazzamento.map((s) => s.indice));
 
   let titolo, etichetta;
   if (faseGiocatori) {
@@ -213,7 +253,35 @@ export default function SchermataDraft({ slot, squadre, allenatori: listaAllenat
 
       <div className="draft-spread">
         <div className="draft-scelta">
-          {faseGiocatori && (
+          {faseGiocatori && giocatoreDaPiazzare && (
+            <div className="piazzamento">
+              <div className="piazzamento-testo">
+                Dove vuoi schierare{" "}
+                <b>{giocatoreDaPiazzare.nome} {giocatoreDaPiazzare.cognome}</b>?
+              </div>
+              <div className="piazzamento-hint">Tocca una posizione, sul campo o qui sotto.</div>
+              <div className="piazzamento-opzioni">
+                {opzioniPiazzamento.map((s) => (
+                  <button
+                    key={s.indice}
+                    className="piazzamento-opz"
+                    onClick={() => piazzaGiocatore(giocatoreDaPiazzare, s.indice)}
+                  >
+                    <span className="piazzamento-opz-tag">{s.ruolo}</span>
+                    <span className="piazzamento-opz-nome">
+                      {NOMI_RUOLO[s.ruolo] || s.ruolo} · {latoSlot(s.x)}
+                    </span>
+                    <span className="freccia">＋</span>
+                  </button>
+                ))}
+              </div>
+              <button className="piazzamento-annulla" onClick={() => setGiocatoreDaPiazzare(null)}>
+                Annulla
+              </button>
+            </div>
+          )}
+
+          {faseGiocatori && !giocatoreDaPiazzare && (
             <>
               {squadraEstratta ? (
                 <div className="squadra-corrente" key={`${squadraEstratta.squadra}-${squadraEstratta.anno}`}>
@@ -361,7 +429,9 @@ export default function SchermataDraft({ slot, squadre, allenatori: listaAllenat
           <FormazioneDraft
             slot={slot}
             picks={assegnazioni}
-            slotEvidenziati={faseGiocatori ? slotEvidenziati : null}
+            slotEvidenziati={faseGiocatori && !giocatoreDaPiazzare ? slotEvidenziati : null}
+            slotPiazzabili={giocatoreDaPiazzare ? slotPiazzabili : null}
+            onPiazza={(indice) => piazzaGiocatore(giocatoreDaPiazzare, indice)}
             allenatore={allenatoreScelto}
             faseAllenatore={faseAllenatore}
           />

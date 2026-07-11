@@ -17,27 +17,40 @@ export default function FormazioneDraft({
   slot,
   picks,
   slotEvidenziati,
+  slotPiazzabili,
+  onPiazza,
   allenatore,
   faseAllenatore,
 }) {
   const cognome = (p) => p.giocatore.cognome || p.giocatore.nome;
   const titolari = slot.filter((s) => s.tipo === "titolare");
   const panchina = slot.filter((s) => s.tipo === "panchina");
+  const inPiazzamento = !!(slotPiazzabili && slotPiazzabili.size);
 
   return (
-    <div className="formazione-draft">
+    <div className={`formazione-draft ${inPiazzamento ? "in-piazzamento" : ""}`}>
       <div className="campo campo-costruzione">
         {titolari.map((s) => {
           const pick = picks[s.indice];
           const st = stato(s.indice, pick, slotEvidenziati);
+          const piazzabile = !pick && slotPiazzabili && slotPiazzabili.has(s.indice);
           return (
             <div
               key={s.indice}
-              className={`slot-pos slot-${st}`}
+              className={`slot-pos slot-${st} ${piazzabile ? "slot-piazzabile" : ""}`}
               style={{ left: `${s.x}%`, top: `${s.y}%` }}
+              role={piazzabile ? "button" : undefined}
+              tabIndex={piazzabile ? 0 : undefined}
+              onClick={piazzabile ? () => onPiazza(s.indice) : undefined}
+              onKeyDown={
+                piazzabile
+                  ? (e) => { if (e.key === "Enter" || e.key === " ") { e.preventDefault(); onPiazza(s.indice); } }
+                  : undefined
+              }
             >
               <span className="slot-disc">{pick ? pick.giocatore.ruolo : s.ruolo}</span>
               {pick && <span className="slot-lbl">{cognome(pick)}</span>}
+              {piazzabile && <span className="slot-piazza-piu">＋</span>}
             </div>
           );
         })}
