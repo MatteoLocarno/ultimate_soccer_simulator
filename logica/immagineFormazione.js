@@ -339,18 +339,205 @@ export async function generaCanvasFormazione({ titolari, capitanoId, allenatore,
   return canvas;
 }
 
-// Genera il PNG e ne avvia il download. Ritorna true se riuscito.
-export async function scaricaFormazionePng(dati) {
-  const canvas = await generaCanvasFormazione(dati);
+// Sfondo + cornice doppia + testata (stemma, titolo, sottotitolo). Condivisa
+// tra le card (formazione e bilancio).
+function disegnaCorniceETesta(ctx, W, H, sottotitolo) {
+  ctx.fillStyle = COL.sfondo;
+  ctx.fillRect(0, 0, W, H);
+  ctx.fillStyle = COL.pannello;
+  roundRect(ctx, 26, 26, W - 52, H - 52, 22);
+  ctx.fill();
+  ctx.lineWidth = 3;
+  ctx.strokeStyle = COL.bordo;
+  roundRect(ctx, 40, 40, W - 80, H - 80, 16);
+  ctx.stroke();
+  ctx.lineWidth = 5;
+  ctx.strokeStyle = COL.bordoScuro;
+  roundRect(ctx, 48, 48, W - 96, H - 96, 12);
+  ctx.stroke();
+
+  disegnaStemma(ctx, W / 2, 148, 100);
+  ctx.textAlign = "center";
+  ctx.fillStyle = COL.testo;
+  ctx.font = `700 58px ${FONT}`;
+  ctx.fillText("DINASTIA SCUDETTO", W / 2, 254);
+  ctx.fillStyle = COL.testoSoft;
+  ctx.font = `500 22px ${FONT}`;
+  ctx.fillText(sottotitolo, W / 2, 292);
+}
+
+function disegnaFooter(ctx, W, H) {
+  const dividerY = H - 118;
+  ctx.beginPath();
+  ctx.moveTo(120, dividerY);
+  ctx.lineTo(W - 120, dividerY);
+  ctx.strokeStyle = COL.bordo;
+  ctx.lineWidth = 2;
+  ctx.stroke();
+  ctx.textAlign = "center";
+  ctx.fillStyle = COL.oro;
+  ctx.font = `700 42px ${FONT}`;
+  ctx.fillText(SITO, W / 2, H - 76);
+  ctx.fillStyle = COL.testoSoft;
+  ctx.font = `italic 25px ${FONT_SERIF}`;
+  ctx.fillText("Il draft delle leggende della Serie A", W / 2, H - 40);
+}
+
+async function avviaDownload(canvas, nomeFile) {
   const blob = await new Promise((res) => canvas.toBlob(res, "image/png"));
   if (!blob) return false;
   const url = URL.createObjectURL(blob);
   const a = document.createElement("a");
   a.href = url;
-  a.download = "dinastia-scudetto-formazione.png";
+  a.download = nomeFile;
   document.body.appendChild(a);
   a.click();
   a.remove();
   setTimeout(() => URL.revokeObjectURL(url), 4000);
   return true;
+}
+
+// Genera il PNG e ne avvia il download. Ritorna true se riuscito.
+export async function scaricaFormazionePng(dati) {
+  const canvas = await generaCanvasFormazione(dati);
+  return avviaDownload(canvas, "dinastia-scudetto-formazione.png");
+}
+
+// ── Card del bilancio della dinastia ────────────────────────────────────────
+function boxStat(ctx, x, y, w, h, valore, etichetta) {
+  ctx.fillStyle = "rgba(168,118,26,0.10)";
+  roundRect(ctx, x, y, w, h, 10);
+  ctx.fill();
+  ctx.lineWidth = 1.5;
+  ctx.strokeStyle = COL.bordo;
+  roundRect(ctx, x, y, w, h, 10);
+  ctx.stroke();
+  ctx.textAlign = "center";
+  ctx.fillStyle = COL.testo;
+  ctx.font = `700 46px ${FONT}`;
+  ctx.fillText(String(valore), x + w / 2, y + h * 0.42);
+  ctx.fillStyle = COL.testoSoft;
+  ctx.font = `500 18px ${FONT}`;
+  ctx.fillText(etichetta.toUpperCase(), x + w / 2, y + h * 0.76);
+}
+
+function boxMvp(ctx, x, y, w, h, etichetta, nome, valore) {
+  ctx.fillStyle = COL.pannello;
+  roundRect(ctx, x, y, w, h, 10);
+  ctx.fill();
+  ctx.lineWidth = 2;
+  ctx.strokeStyle = COL.verdeScuro;
+  roundRect(ctx, x, y, w, h, 10);
+  ctx.stroke();
+  ctx.textAlign = "center";
+  ctx.fillStyle = COL.verde;
+  ctx.font = `600 20px ${FONT}`;
+  ctx.fillText(etichetta.toUpperCase(), x + w / 2, y + 30);
+  ctx.fillStyle = COL.testo;
+  ctx.font = `700 30px ${FONT}`;
+  ctx.fillText(nome, x + w / 2, y + 68);
+  ctx.fillStyle = COL.oro;
+  ctx.font = `600 24px ${FONT}`;
+  ctx.fillText(valore, x + w / 2, y + h - 22);
+}
+
+export async function generaCanvasDinastia(d) {
+  await pronto();
+  const W = 1080;
+  const H = 1500;
+  const canvas = document.createElement("canvas");
+  canvas.width = W;
+  canvas.height = H;
+  const ctx = canvas.getContext("2d");
+  ctx.textBaseline = "middle";
+
+  disegnaCorniceETesta(ctx, W, H, "IL BILANCIO DELLA DINASTIA");
+
+  // Verdetto + nome squadra
+  const scudetti = d.scudetti || 0;
+  ctx.textAlign = "center";
+  ctx.fillStyle = COL.oro;
+  ctx.font = `700 40px ${FONT}`;
+  ctx.fillText(
+    (scudetti >= 3 ? "DINASTIA LEGGENDARIA" : scudetti >= 1 ? (scudetti === 1 ? "CAMPIONI D'ITALIA" : `${scudetti} VOLTE CAMPIONI`) : "LA DINASTIA CONTINUA"),
+    W / 2, 348
+  );
+  ctx.fillStyle = COL.testoSoft;
+  ctx.font = `500 24px ${FONT}`;
+  ctx.fillText(`${(d.nomeSquadra || "").toUpperCase()} · ${d.stagioni} STAGIONI`, W / 2, 388);
+
+  // Scudetti (scudi dorati)
+  if (scudetti > 0) {
+    const mostra = Math.min(scudetti, 6);
+    const passo = 74;
+    const startX = W / 2 - ((mostra - 1) * passo) / 2;
+    for (let i = 0; i < mostra; i++) disegnaStemma(ctx, startX + i * passo, 452, 52);
+    if (scudetti > 6) {
+      ctx.fillStyle = COL.testo;
+      ctx.font = `700 30px ${FONT}`;
+      ctx.fillText(`×${scudetti}`, W / 2 + (mostra * passo) / 2 + 10, 452);
+    }
+  } else {
+    ctx.fillStyle = COL.testoSoft;
+    ctx.font = `italic 24px ${FONT_SERIF}`;
+    ctx.fillText("Nessuno scudetto, ma la storia è appena iniziata.", W / 2, 452);
+  }
+
+  // Stat 4 box
+  const gy = 512;
+  const gh = 116;
+  const gap = 18;
+  const gw = (W - 120 - gap * 3) / 4;
+  const stats = [
+    [d.stagioni, "Stagioni"],
+    [scudetti, "Scudetti"],
+    [Number.isFinite(d.migliorPiazz) ? `${d.migliorPiazz}°` : "—", "Miglior pos."],
+    [d.puntiTotali, "Punti"],
+  ];
+  stats.forEach(([v, l], i) => boxStat(ctx, 60 + i * (gw + gap), gy, gw, gh, v, l));
+
+  // MVP: capocannoniere + assistman
+  const my = 664;
+  const mh = 128;
+  const mw = (W - 120 - gap) / 2;
+  boxMvp(ctx, 60, my, mw, mh, "⚽ Capocannoniere",
+    d.bomber ? `${d.bomber.nome} ${d.bomber.cognome}`.trim() : "—",
+    d.bomber ? `${d.bomber.valore} gol` : "");
+  boxMvp(ctx, 60 + mw + gap, my, mw, mh, "🎯 Assistman",
+    d.assistman ? `${d.assistman.nome} ${d.assistman.cognome}`.trim() : "—",
+    d.assistman ? `${d.assistman.valore} assist` : "");
+
+  // Stagione per stagione
+  let ry = 840;
+  ctx.textAlign = "left";
+  ctx.fillStyle = COL.testo;
+  ctx.font = `600 24px ${FONT}`;
+  ctx.fillText("STAGIONE PER STAGIONE", 60, ry);
+  ry += 30;
+  ctx.font = `500 24px ${FONT}`;
+  for (const s of d.perStagione.slice(0, 5)) {
+    ctx.fillStyle = s.scudetto ? "rgba(168,118,26,0.14)" : "rgba(0,0,0,0.03)";
+    roundRect(ctx, 60, ry, W - 120, 46, 8);
+    ctx.fill();
+    ctx.fillStyle = COL.testo;
+    ctx.textAlign = "left";
+    ctx.font = `600 23px ${FONT}`;
+    ctx.fillText(`Stagione ${s.stagione}`, 78, ry + 23);
+    ctx.textAlign = "center";
+    ctx.fillText(`${s.posizione}°`, W / 2 - 40, ry + 23);
+    ctx.fillText(`${s.punti} pt`, W / 2 + 90, ry + 23);
+    ctx.textAlign = "right";
+    ctx.fillStyle = s.scudetto ? COL.oro : COL.testoSoft;
+    ctx.font = `600 22px ${FONT}`;
+    ctx.fillText(s.scudetto ? "🏆 Scudetto" : s.posizione <= 4 ? "Champions" : s.posizione <= 6 ? "Europa" : "—", W - 78, ry + 23);
+    ry += 54;
+  }
+
+  disegnaFooter(ctx, W, H);
+  return canvas;
+}
+
+export async function scaricaDinastiaPng(dati) {
+  const canvas = await generaCanvasDinastia(dati);
+  return avviaDownload(canvas, "dinastia-scudetto-bilancio.png");
 }

@@ -6,7 +6,6 @@ import Stemma from "@/componenti/Stemma";
 import Campo from "@/componenti/Campo";
 import AndamentoChart from "@/componenti/AndamentoChart";
 import AdSlot from "@/componenti/AdSlot";
-import MercatoFineStagione from "@/componenti/MercatoFineStagione";
 
 const VELOCITA = {
   standard: { ms: 650, label: "Standard" },
@@ -100,7 +99,7 @@ function ClassificaAnimata({ snapshot }) {
   );
 }
 
-export default function SchermataStagione({ rosa, allenatore, capitano, nomeSquadra, colore, squadre, allenatori, stagione = 1, onProssimaStagione, onRicomincia }) {
+export default function SchermataStagione({ rosa, allenatore, capitano, nomeSquadra, colore, squadre, stagione = 1, ultima = false, onStagioneSuccessiva, onEsci }) {
   const [sim] = useState(() => {
     const camp = costruisciCampionato(rosa, nomeSquadra, allenatore, colore, squadre);
     return simulaStagione(camp);
@@ -171,6 +170,18 @@ export default function SchermataStagione({ rosa, allenatore, capitano, nomeSqua
   const posizione = classifica.findIndex((r) => r.utente) + 1;
   const mia = classifica[posizione - 1];
   const v = verdetto(classifica, posizione);
+
+  // Risultato della stagione da tramandare al bilancio della dinastia:
+  // piazzamento, scudetto, e i marcatori/assist della propria squadra (per il
+  // capocannoniere e l'assistman di tutta la dinastia).
+  const risultato = {
+    stagione,
+    posizione,
+    punti: mia.punti,
+    scudetto: posizione === 1,
+    marcatori: marcatori.filter((m) => m.utente).map((m) => ({ nome: m.nome, cognome: m.cognome, gol: m.gol })),
+    assist: assist.filter((m) => m.utente).map((m) => ({ nome: m.nome, cognome: m.cognome, assist: m.assist })),
+  };
   const { migliore, peggiore } = estremi(partiteUtente);
   const titolari = rosa.filter((p) => p.slot.tipo === "titolare");
   const capitanoPick = titolari.find((p) => p.giocatore._id === capitano);
@@ -291,22 +302,19 @@ export default function SchermataStagione({ rosa, allenatore, capitano, nomeSqua
         <AndamentoChart andamento={andamentoUtente} nSquadre={classifica.length} />
       </section>
 
-      {onProssimaStagione && (
-        <MercatoFineStagione
-          rosa={rosa}
-          allenatore={allenatore}
-          squadre={squadre}
-          allenatori={allenatori}
-          onProssima={onProssimaStagione}
-        />
-      )}
-
       {/* Solo a fine partita, dopo tutti i contenuti: l'utente ha finito di
           leggere il recap, nessun pulsante interattivo nelle vicinanze. */}
       <AdSlot slot="8853641825" />
 
-      <div className="azione-fissa">
-        <button className="btn secondario" onClick={onRicomincia}>Ricomincia da capo</button>
+      <div className="azione-fissa doppia">
+        <button className="btn secondario" onClick={() => onEsci?.(risultato)}>
+          {ultima ? "Bilancio dinastia" : "Menu principale"}
+        </button>
+        {!ultima && (
+          <button className="btn" onClick={() => onStagioneSuccessiva?.(risultato)}>
+            Stagione successiva →
+          </button>
+        )}
       </div>
     </div>
   );

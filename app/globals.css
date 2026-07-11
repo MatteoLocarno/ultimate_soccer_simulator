@@ -1859,6 +1859,134 @@ button {
   100% { transform: rotate(0deg) scale(1); }
 }
 
+/* ── Mercato estivo (schermata dedicata tra le stagioni) ───────────────── */
+.mercato-estivo { display: grid; gap: 16px; }
+.gate {
+  text-align: center;
+  display: grid;
+  gap: 12px;
+  justify-items: center;
+  padding: 26px 20px;
+}
+.gate-emoji { font-size: 40px; }
+.gate h2 {
+  font-family: var(--font-titolo);
+  font-size: 26px;
+  letter-spacing: 0.5px;
+  text-transform: uppercase;
+}
+.gate p { max-width: 460px; font-size: 14.5px; line-height: 1.45; color: var(--testo-soft); }
+.gate-azioni { display: flex; gap: 10px; flex-wrap: wrap; justify-content: center; margin-top: 4px; }
+.gate-azioni .btn { width: auto; }
+
+/* dado grande cliccabile con ROLLA */
+.dado-titolo { font-size: 14.5px; color: var(--testo-soft); text-align: center; line-height: 1.35; }
+.dado-bottone {
+  display: grid;
+  justify-items: center;
+  gap: 10px;
+  padding: 12px;
+  border: none;
+  background: transparent;
+  cursor: pointer;
+}
+.dado-bottone:disabled { cursor: default; }
+.dado-rolla {
+  font-family: var(--font-titolo);
+  font-size: 22px;
+  letter-spacing: 2px;
+  color: var(--oro);
+}
+.cand-ovr-nascosto {
+  flex: 0 0 auto;
+  width: 34px;
+  height: 34px;
+  border-radius: 50%;
+  display: grid;
+  place-items: center;
+  background: var(--bordo-scuro);
+  color: var(--pannello);
+  font-family: var(--font-titolo);
+  font-size: 20px;
+}
+
+/* animazione "reveal" dell'overall dopo l'inserimento */
+.mercato-riga.rivela {
+  animation: reveal-riga 1.3s ease;
+}
+.mercato-riga.rivela .mr-ovr {
+  animation: reveal-ovr 1.3s ease;
+}
+@keyframes reveal-riga {
+  0% { background: rgba(168, 118, 26, 0.4); }
+  100% { background: rgba(243, 236, 210, 0.05); }
+}
+@keyframes reveal-ovr {
+  0% { transform: scale(1.6); color: var(--oro); }
+  100% { transform: scale(1); color: var(--testo); }
+}
+
+/* scelta capitano */
+.cap-lista { display: grid; gap: 7px; margin: 10px 0 4px; }
+.cap-riga {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 9px 10px;
+  border: 1px solid #2d2417;
+  border-radius: 8px;
+  background: rgba(243, 236, 210, 0.05);
+  color: var(--testo);
+  text-align: left;
+  cursor: pointer;
+}
+.cap-riga.attivo { border-color: var(--oro); background: rgba(168, 118, 26, 0.14); }
+.cap-fascia { flex: 0 0 auto; color: var(--oro); font-size: 18px; min-width: 20px; text-align: center; }
+
+/* ── Bilancio della dinastia ───────────────────────────────────────────── */
+.finale { display: grid; gap: 16px; }
+.finale .trofei {
+  display: flex;
+  gap: 6px;
+  justify-content: center;
+  flex-wrap: wrap;
+  margin-top: 8px;
+}
+.finale-stat { grid-template-columns: repeat(4, 1fr); }
+@media (max-width: 520px) { .finale-stat { grid-template-columns: repeat(2, 1fr); } }
+.finale-mvp {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 12px;
+}
+@media (max-width: 520px) { .finale-mvp { grid-template-columns: 1fr; } }
+.mvp-card {
+  text-align: center;
+  padding: 16px 14px;
+  border: 2px solid var(--verde-scuro);
+  border-radius: 12px;
+  background: var(--pannello);
+}
+.mvp-etichetta {
+  font-family: var(--font-titolo);
+  font-size: 14px;
+  letter-spacing: 0.6px;
+  text-transform: uppercase;
+  color: var(--verde);
+}
+.mvp-nome {
+  font-family: var(--font-titolo);
+  font-size: 22px;
+  margin: 6px 0 2px;
+}
+.mvp-nome.muto { font-size: 15px; color: var(--testo-soft); font-family: var(--font-corpo); }
+.mvp-val { font-size: 15px; color: var(--oro); font-weight: 700; }
+
+/* due CTA affiancate a fine stagione */
+.azione-fissa.doppia { display: flex; gap: 10px; }
+.azione-fissa.doppia .btn { flex: 1; }
+
+
 /* ── Piazzamento: scegliere DOVE mettere il giocatore selezionato ───────── */
 /* Quando è attivo, il campo abbassa gli slot non scelti e rende cliccabili
    (pulsanti) quelli dove il giocatore può andare. */
