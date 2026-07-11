@@ -198,9 +198,9 @@ export async function generaCanvasFormazione({ titolari, capitanoId, allenatore,
 
   // ── Campo ──
   const pX = 70;
-  const pY = 388;
+  const pY = 372;
   const pW = W - 140;
-  const pH = 900;
+  const pH = 858;
   // manto erboso a strisce
   const grad = ctx.createLinearGradient(0, pY, 0, pY + pH);
   grad.addColorStop(0, "#4e7040");
@@ -292,34 +292,34 @@ export async function generaCanvasFormazione({ titolari, capitanoId, allenatore,
   }
 
   // ── Allenatore ──
-  const aY = pY + pH + 56;
   if (allenatore) {
+    const aY = pY + pH + 50; // ~1272
     ctx.fillStyle = COL.testoSoft;
-    ctx.font = `500 24px ${FONT}`;
+    ctx.font = `500 23px ${FONT}`;
     ctx.fillText("ALLENATORE", W / 2, aY - 22);
     ctx.fillStyle = COL.testo;
-    ctx.font = `700 40px ${FONT}`;
+    ctx.font = `700 38px ${FONT}`;
     ctx.fillText(
       `${allenatore.nome ? allenatore.nome + " " : ""}${allenatore.cognome || ""}`.toUpperCase(),
       W / 2,
-      aY + 16
+      aY + 14
     );
   }
 
   // ── Footer: rimando al sito ──
-  const fY = H - 92;
+  const dividerY = H - 118; // ~1382
   ctx.beginPath();
-  ctx.moveTo(90, fY - 44);
-  ctx.lineTo(W - 90, fY - 44);
+  ctx.moveTo(120, dividerY);
+  ctx.lineTo(W - 120, dividerY);
   ctx.strokeStyle = COL.bordo;
   ctx.lineWidth = 2;
   ctx.stroke();
   ctx.fillStyle = COL.oro;
-  ctx.font = `700 40px ${FONT}`;
-  ctx.fillText(SITO, W / 2, fY);
+  ctx.font = `700 42px ${FONT}`;
+  ctx.fillText(SITO, W / 2, H - 76);
   ctx.fillStyle = COL.testoSoft;
-  ctx.font = `italic 24px ${FONT_SERIF}`;
-  ctx.fillText("Crea la tua dinastia e sfida i tuoi amici", W / 2, fY + 36);
+  ctx.font = `italic 25px ${FONT_SERIF}`;
+  ctx.fillText("Il draft delle leggende della Serie A", W / 2, H - 40);
 
   return canvas;
 }

@@ -2,7 +2,7 @@
 
 import { useEffect, useRef, useState } from "react";
 import { NOMI_RUOLO, macroRuolo } from "@/logica/formazione";
-import { estraiCandidati, estraiAllenatori, chiavePersona } from "@/logica/draft";
+import { estraiCandidati, estraiAllenatori, chiavePersona, squadraHaTop } from "@/logica/draft";
 import { STEMMI } from "@/dati/stemmi";
 import FormazioneDraft from "@/componenti/FormazioneDraft";
 import PalloneStorico from "@/componenti/PalloneStorico";
@@ -128,6 +128,16 @@ export default function SchermataDraft({ slot, squadre, allenatori: listaAllenat
   const timeoutTransizione = useRef(null);
   useEffect(() => () => clearTimeout(timeoutTransizione.current), []);
 
+  // Id delle squadre FORTI (con un top player > 85) già proposte nel draft:
+  // serve a garantire che ne escano almeno 2 nel corso delle scelte.
+  const squadreForti = useRef(new Set());
+  const MIN_SQUADRE_FORTI = 2;
+  function registraSquadra(squadra) {
+    if (squadra && squadraHaTop(squadra, idsUsati(), personeUsate())) {
+      squadreForti.current.add(squadra.id);
+    }
+  }
+
   function applicaConTransizione(nuoviCandidati, nuovaSquadra) {
     setInTransizione(true);
     clearTimeout(timeoutTransizione.current);
@@ -161,7 +171,15 @@ export default function SchermataDraft({ slot, squadre, allenatori: listaAllenat
     if (faseGiocatori) {
       const ruoliEsauriti = calcolaRuoliEsauriti(slot, assegnazioni);
       const ruoliDettagliatiAperti = calcolaRuoliDettagliatiAperti(slot, assegnazioni);
-      const { candidati: nuovi, squadra } = estraiCandidati(idsUsati(), personeUsate(), squadre, { tipo: "squadra" }, ruoliEsauriti, ruoliDettagliatiAperti);
+      // Garanzia "almeno 2 squadre forti": mancano ancora squadre forti da
+      // mostrare? Le si preferisce con una certa probabilità e, quando le
+      // scelte rimaste bastano appena a raggiungere la quota, le si forza.
+      const restanti = totaleSlot - numAssegnati;
+      const ancoraNecessarie = MIN_SQUADRE_FORTI - squadreForti.current.size;
+      const preferisciForte =
+        ancoraNecessarie > 0 && (restanti <= ancoraNecessarie + 1 || Math.random() < 0.5);
+      const { candidati: nuovi, squadra } = estraiCandidati(idsUsati(), personeUsate(), squadre, { tipo: "squadra" }, ruoliEsauriti, ruoliDettagliatiAperti, preferisciForte);
+      registraSquadra(squadra);
       applicaConTransizione(nuovi, squadra);
     } else if (faseAllenatore) {
       setAllenatori(estraiAllenatori(4, listaAllenatori));
@@ -174,6 +192,7 @@ export default function SchermataDraft({ slot, squadre, allenatori: listaAllenat
     const ruoliEsauriti = calcolaRuoliEsauriti(slot, assegnazioni);
     const ruoliDettagliatiAperti = calcolaRuoliDettagliatiAperti(slot, assegnazioni);
     const { candidati: nuovi, squadra } = estraiCandidati(idsUsati(), personeUsate(), squadre, { tipo }, ruoliEsauriti, ruoliDettagliatiAperti);
+    registraSquadra(squadra);
     applicaConTransizione(nuovi, squadra);
   }
 

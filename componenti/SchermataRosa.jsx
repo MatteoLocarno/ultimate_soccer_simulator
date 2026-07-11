@@ -90,12 +90,12 @@ export default function SchermataRosa({
 
       <div className="condividi-formazione">
         <button className="btn-condividi" onClick={scaricaImmagine} disabled={statoPng === "creazione"}>
-          {statoPng === "creazione" ? "Creazione immagine…" : "📸 Scarica PNG da condividere"}
+          {statoPng === "creazione" ? "Creazione immagine…" : "📸 Scarica la formazione"}
         </button>
         <p className="condividi-nota">
           {statoPng === "errore"
             ? "Non è stato possibile creare l'immagine. Riprova."
-            : "Immagine curata con i tuoi overall e il rimando al sito, pronta per gli amici."}
+            : "Immagine con i tuoi overall, il modulo e il rimando al sito."}
         </p>
       </div>
 

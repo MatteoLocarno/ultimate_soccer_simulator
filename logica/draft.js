@@ -71,6 +71,17 @@ function giocatoriDisponibili(squadra, idsUsati, personeUsate) {
   );
 }
 
+// Soglia "top player": una squadra è considerata FORTE se, tra i giocatori
+// ancora disponibili, ne ha almeno uno con overall (in un suo ruolo qualsiasi)
+// oltre questa soglia. Serve a garantire varietà di livello nelle proposte
+// (vedi estraiDaSquadraCasuale + preferisciForte).
+export const SOGLIA_TOP = 85;
+export function squadraHaTop(squadra, idsUsati, personeUsate, soglia = SOGLIA_TOP) {
+  return giocatoriDisponibili(squadra, idsUsati, personeUsate).some(
+    (g) => (g.ruoli || []).some((r) => Number(r.overall) > soglia)
+  );
+}
+
 // Un candidato è proponibile solo se il suo ruolo macro ha ancora slot
 // liberi (altrimenti non ci sarebbe dove metterlo). Usato SOLO nella rete
 // di sicurezza estrema (vedi poolLiberoCompatibile): più permissivo, pur di
@@ -161,17 +172,24 @@ function selezionaBande(pool) {
 
 // Prova squadre a caso finché non ne trova una con abbastanza giocatori
 // disponibili nei ruoli ESATTI ancora aperti.
-function estraiDaSquadraCasuale(idsUsati, personeUsate, squadre, ruoliDettagliatiAperti) {
+// Se preferisciForte è true, tra le squadre con abbastanza candidati si dà
+// priorità a quelle FORTI (un top player disponibile > SOGLIA_TOP): serve a
+// garantire che nel draft escano abbastanza squadre di alto livello. Se dopo
+// i tentativi non se ne trova nessuna forte, si ripiega sulla prima valida.
+function estraiDaSquadraCasuale(idsUsati, personeUsate, squadre, ruoliDettagliatiAperti, preferisciForte = false) {
   const provate = new Set();
+  let ripiego = null;
   for (let i = 0; i < TENTATIVI_SQUADRA && provate.size < squadre.length; i++) {
     const restanti = squadre.filter((s) => !provate.has(s.id));
     if (!restanti.length) break;
     const squadra = casuale(restanti);
     provate.add(squadra.id);
     const pool = poolSquadraSingola(squadra, idsUsati, personeUsate, ruoliDettagliatiAperti);
-    if (pool.length >= MINIMO_CANDIDATI_SQUADRA) return { squadra, pool };
+    if (pool.length < MINIMO_CANDIDATI_SQUADRA) continue;
+    if (!preferisciForte || squadraHaTop(squadra, idsUsati, personeUsate)) return { squadra, pool };
+    if (!ripiego) ripiego = { squadra, pool }; // valida ma non forte: tienila da parte
   }
-  return null;
+  return ripiego;
 }
 
 // Estrae i candidati. scope: {tipo: "squadra"|"tutto"|"stagione"|"club"}.
@@ -184,7 +202,7 @@ function estraiDaSquadraCasuale(idsUsati, personeUsate, squadre, ruoliDettagliat
 // Per "squadra"/"club" torna la rosa COMPLETA disponibile di una squadra
 // (ruoli misti, ordine alfabetico); per "tutto"/"stagione" un pool troppo
 // grande da mostrare intero, quindi 10 candidati a bande percentili.
-export function estraiCandidati(idsUsati, personeUsate = new Set(), squadre = SQUADRE, scope = { tipo: "squadra" }, ruoliEsauriti = null, ruoliDettagliatiAperti = null) {
+export function estraiCandidati(idsUsati, personeUsate = new Set(), squadre = SQUADRE, scope = { tipo: "squadra" }, ruoliEsauriti = null, ruoliDettagliatiAperti = null, preferisciForte = false) {
   // Rete di sicurezza: se il pool "esatto" è vuoto (rarissimo: nessuno slot
   // rimasto ha un giocatore disponibile che lo ricopre davvero), si ripiega
   // sulla compatibilità di reparto pur di non bloccare mai il draft.
@@ -199,7 +217,7 @@ export function estraiCandidati(idsUsati, personeUsate = new Set(), squadre = SQ
   }
 
   // default ("squadra") e skip "club": rosa completa di una squadra sola.
-  const trovata = estraiDaSquadraCasuale(idsUsati, personeUsate, squadre, ruoliDettagliatiAperti);
+  const trovata = estraiDaSquadraCasuale(idsUsati, personeUsate, squadre, ruoliDettagliatiAperti, preferisciForte);
   if (!trovata) {
     // rete di sicurezza: nessuna squadra ha abbastanza giocatori disponibili
     return { candidati: selezionaBande(conRete(poolLibero(idsUsati, personeUsate, squadre, ruoliDettagliatiAperti))) };
