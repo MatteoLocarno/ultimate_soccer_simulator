@@ -102,24 +102,30 @@ function disegnaStemma(ctx, cx, cy, w) {
   ctx.closePath();
   ctx.stroke();
   ctx.restore();
-  // 3 stelle dorate in alto
-  const sy = top + h * 0.26;
-  const sr = w * 0.1;
-  for (let i = -1; i <= 1; i++) stella(ctx, cx + i * w * 0.24, sy, sr, COL.oro);
+  // 3 stelle dorate allineate nella parte alta dello scudo
+  const sy = top + h * 0.3;
+  const sr = w * 0.115;
+  for (let i = -1; i <= 1; i++) stella(ctx, cx + i * w * 0.26, sy, sr, COL.oro);
 }
 
 function stella(ctx, cx, cy, r, colore) {
   ctx.save();
   ctx.fillStyle = colore;
+  // contorno scuro sottile per staccare la stella dalla banda bianca
+  ctx.strokeStyle = "rgba(45,36,23,0.55)";
+  ctx.lineWidth = r * 0.12;
+  ctx.lineJoin = "round";
   ctx.beginPath();
   for (let i = 0; i < 5; i++) {
-    const a = (Math.PI / 5) * (2 * i) - Math.PI / 2;
-    const a2 = a + Math.PI / 5;
-    ctx.lineTo(cx + Math.cos(a) * r, cy + Math.sin(a) * r);
-    ctx.lineTo(cx + Math.cos(a2) * r * 0.46, cy + Math.sin(a2) * r * 0.46);
+    const aOut = (Math.PI * 2 * i) / 5 - Math.PI / 2;
+    const aIn = aOut + Math.PI / 5;
+    if (i === 0) ctx.moveTo(cx + Math.cos(aOut) * r, cy + Math.sin(aOut) * r);
+    else ctx.lineTo(cx + Math.cos(aOut) * r, cy + Math.sin(aOut) * r);
+    ctx.lineTo(cx + Math.cos(aIn) * r * 0.5, cy + Math.sin(aIn) * r * 0.5);
   }
   ctx.closePath();
   ctx.fill();
+  ctx.stroke();
   ctx.restore();
 }
 
@@ -172,35 +178,35 @@ export async function generaCanvasFormazione({ titolari, capitanoId, allenatore,
   ctx.stroke();
 
   // Header: stemma + titolo
-  disegnaStemma(ctx, W / 2, 150, 96);
+  disegnaStemma(ctx, W / 2, 148, 100);
   ctx.fillStyle = COL.testo;
-  ctx.font = `700 62px ${FONT}`;
-  ctx.fillText("DINASTIA SCUDETTO", W / 2, 268);
+  ctx.font = `700 58px ${FONT}`;
+  ctx.fillText("DINASTIA SCUDETTO", W / 2, 254);
   ctx.fillStyle = COL.testoSoft;
-  ctx.font = `500 26px ${FONT}`;
-  ctx.fillText("LA MIA FORMAZIONE — DRAFT STORICO DI SERIE A", W / 2, 306);
+  ctx.font = `500 22px ${FONT}`;
+  ctx.fillText("LA MIA FORMAZIONE — DRAFT STORICO DI SERIE A", W / 2, 292);
 
-  // Strip modulo + forza
-  const stripY = 336;
+  // Strip modulo + forza (ben staccata dal sottotitolo)
+  const stripY = 344;
   ctx.fillStyle = COL.oro;
-  ctx.font = `600 34px ${FONT}`;
-  ctx.fillText(`MODULO ${modulo?.nome || ""}`.trim(), W / 2 - 150, stripY);
+  ctx.font = `600 32px ${FONT}`;
+  ctx.fillText(`MODULO ${modulo?.nome || ""}`.trim(), W / 2 - 155, stripY);
   // pastiglia forza
   const fx = W / 2 + 150;
   ctx.fillStyle = COL.verde;
-  roundRect(ctx, fx - 130, stripY - 26, 260, 52, 26);
+  roundRect(ctx, fx - 130, stripY - 24, 260, 48, 24);
   ctx.fill();
   ctx.fillStyle = COL.bianco;
-  ctx.font = `600 24px ${FONT}`;
+  ctx.font = `600 23px ${FONT}`;
   ctx.fillText("FORZA", fx - 58, stripY);
-  ctx.font = `700 34px ${FONT}`;
+  ctx.font = `700 32px ${FONT}`;
   ctx.fillText(String(forza), fx + 52, stripY);
 
   // ── Campo ──
   const pX = 70;
-  const pY = 372;
+  const pY = 386;
   const pW = W - 140;
-  const pH = 858;
+  const pH = 830;
   // manto erboso a strisce
   const grad = ctx.createLinearGradient(0, pY, 0, pY + pH);
   grad.addColorStop(0, "#4e7040");
@@ -235,12 +241,20 @@ export async function generaCanvasFormazione({ titolari, capitanoId, allenatore,
   ctx.strokeRect(pX + (pW - areaW) / 2, pY + 14, areaW, areaH);
   ctx.strokeRect(pX + (pW - areaW) / 2, pY + pH - 14 - areaH, areaW, areaH);
 
-  // Token dei giocatori (posizionati con slot.x / slot.y, come nel gioco)
-  const padX = 78;
-  const padY = 74;
+  // Token dei giocatori. Le coordinate delle formazioni non coprono sempre
+  // tutta l'altezza (attacco ~24, porta ~86 su 0-100): normalizzo la y dei
+  // titolari sull'altezza utile del campo, così la squadra riempie il campo
+  // invece di ammassarsi in basso lasciando un vuoto in alto.
+  const padX = 82;
+  const ys = titolari.map((p) => p.slot.y);
+  const minY = Math.min(...ys);
+  const maxY = Math.max(...ys);
+  const spanY = maxY - minY || 1;
+  const yTop = pY + 62; // attaccanti appena sotto la linea alta
+  const yBot = pY + pH - 96; // portiere, con spazio sotto per la targhetta
   for (const p of titolari) {
     const cx = pX + padX + ((pW - padX * 2) * p.slot.x) / 100;
-    const cy = pY + padY + ((pH - padY * 2) * p.slot.y) / 100;
+    const cy = yTop + ((p.slot.y - minY) / spanY) * (yBot - yTop);
     const ovr = p.giocatore.overall;
     const f = fasciaOvr(ovr);
     const r = 40;
@@ -270,11 +284,12 @@ export async function generaCanvasFormazione({ titolari, capitanoId, allenatore,
       ctx.font = `700 18px ${FONT}`;
       ctx.fillText("C", bx, by + 1);
     }
-    // targhetta col cognome
+    // targhetta col cognome (larghezza contenuta: due targhette della stessa
+    // fila non devono toccarsi, es. i due centrali)
     const nome = cognomeDi(p).toUpperCase();
-    ctx.font = `600 25px ${FONT}`;
-    const tw = Math.min(ctx.measureText(nome).width + 20, 190);
-    const plY = cy + r + 20;
+    ctx.font = `600 24px ${FONT}`;
+    const tw = Math.min(ctx.measureText(nome).width + 18, 150);
+    const plY = cy + r + 19;
     ctx.fillStyle = COL.pannello;
     roundRect(ctx, cx - tw / 2, plY - 18, tw, 34, 7);
     ctx.fill();
@@ -283,8 +298,8 @@ export async function generaCanvasFormazione({ titolari, capitanoId, allenatore,
     ctx.stroke();
     ctx.fillStyle = COL.testo;
     // se troppo lungo, riduci un filo il font
-    let fs = 25;
-    while (ctx.measureText(nome).width > tw - 14 && fs > 17) {
+    let fs = 24;
+    while (ctx.measureText(nome).width > tw - 14 && fs > 15) {
       fs -= 1;
       ctx.font = `600 ${fs}px ${FONT}`;
     }
