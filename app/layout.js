@@ -4,6 +4,7 @@ import { ADSENSE_CLIENT } from "@/lib/adsense";
 import AdSenseLoader from "@/componenti/AdSenseLoader";
 import Footer from "@/componenti/Footer";
 import CookieBanner from "@/componenti/CookieBanner";
+import AuthProvider from "@/componenti/AuthProvider";
 
 // Font condensato in stile "programma di gioco" vintage, usato per titoli e
 // numeri. Auto-hostato da Next a build time: nessuna richiesta esterna.
@@ -49,7 +50,7 @@ export default function RootLayout({ children }) {
         {/* Il widget "dona un caffè" è renderizzato da Gioco.jsx: fisso in
             alto a destra durante il gioco, banner sopra lo stemma in home
             (solo dalla seconda visita/partita in poi). */}
-        {children}
+        <AuthProvider>{children}</AuthProvider>
         <Footer />
         {/* Banner consenso e loader annunci a livello globale (su ogni
             pagina). Lo script adsbygoogle si carica SOLO dopo "Accetta"; la

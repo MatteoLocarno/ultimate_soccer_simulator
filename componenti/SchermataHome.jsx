@@ -4,6 +4,7 @@ import { useEffect, useState } from "react";
 import Stemma from "@/componenti/Stemma";
 import AdSlot from "@/componenti/AdSlot";
 import DonaCaffe from "@/componenti/DonaCaffe";
+import BarraAccount from "@/componenti/BarraAccount";
 
 // Non si mostra il banner "dona un caffè" alla primissima visita (chi
 // arriva per la prima volta deve prima capire il gioco): solo dalla
@@ -29,6 +30,7 @@ export default function SchermataHome({ onAvvia }) {
 
   return (
     <div className="home">
+      <BarraAccount />
       <header className="brand">
         {mostraDona && <DonaCaffe className="dona-banner" />}
         <Stemma size={132} className="brand-stemma" />
