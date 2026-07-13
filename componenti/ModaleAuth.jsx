@@ -1,6 +1,7 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
+import { createPortal } from "react-dom";
 import { supabase } from "@/lib/supabaseClient";
 
 // Traduce i messaggi d'errore più comuni di Supabase Auth in italiano.
@@ -24,6 +25,15 @@ export default function ModaleAuth({ onChiudi }) {
   const [invio, setInvio] = useState(false);
   const [errore, setErrore] = useState(null);
   const [info, setInfo] = useState(null);
+  const [montato, setMontato] = useState(false);
+
+  // Portal + blocco dello scroll di sfondo mentre la modale è aperta.
+  useEffect(() => {
+    setMontato(true);
+    const prima = document.body.style.overflow;
+    document.body.style.overflow = "hidden";
+    return () => { document.body.style.overflow = prima; };
+  }, []);
 
   async function conEmail(e) {
     e.preventDefault();
@@ -63,7 +73,9 @@ export default function ModaleAuth({ onChiudi }) {
     if (error) setErrore(traduciErrore(error));
   }
 
-  return (
+  if (!montato) return null;
+
+  return createPortal(
     <div className="auth-overlay" role="dialog" aria-modal="true" onClick={onChiudi}>
       <div className="auth-modale" onClick={(e) => e.stopPropagation()}>
         <button className="auth-chiudi" onClick={onChiudi} aria-label="Chiudi">×</button>
@@ -123,6 +135,7 @@ export default function ModaleAuth({ onChiudi }) {
           Non condividiamo la tua email. Usata solo per salvare i tuoi progressi.
         </p>
       </div>
-    </div>
+    </div>,
+    document.body
   );
 }
