@@ -3203,3 +3203,199 @@ button {
   font-size: 11.5px;
   color: var(--testo-soft);
 }
+
+/* ==========================================================================
+   PvP — Sfida settimanale online
+   ========================================================================== */
+
+/* La card "Online" in home ora è attiva (niente più opacità da "coming soon") */
+.modalita-card.online {
+  opacity: 1;
+  border-color: var(--oro);
+}
+.mc-badge.nuovo {
+  background: var(--verde);
+  color: #f1e7ca;
+}
+
+.pvp-online .pvp-dashboard,
+.pvp-generale,
+.pvp-risultati {
+  margin-top: 8px;
+}
+
+/* Card generiche del flusso PvP */
+.pvp-hero,
+.pvp-iscritto,
+.pvp-attesa {
+  display: grid;
+  justify-items: center;
+  text-align: center;
+  gap: 12px;
+  padding: 26px 20px;
+}
+.pvp-hero h2,
+.pvp-iscritto h2,
+.pvp-attesa h2 {
+  font-family: var(--font-titolo);
+  text-transform: uppercase;
+  letter-spacing: 0.6px;
+  font-size: 24px;
+  margin: 0;
+}
+.pvp-hero p,
+.pvp-iscritto p,
+.pvp-attesa p {
+  margin: 0;
+  max-width: 44ch;
+  line-height: 1.5;
+  color: var(--testo-soft);
+}
+.pvp-hero .btn,
+.pvp-iscritto .btn,
+.pvp-attesa .btn {
+  min-width: 240px;
+}
+
+.pvp-attesa-icona {
+  font-size: 46px;
+  line-height: 1;
+}
+
+/* Conto alla rovescia */
+.pvp-countdown {
+  display: grid;
+  gap: 2px;
+  padding: 12px 22px;
+  border: 3px double var(--bordo-scuro);
+  border-radius: 8px;
+  background: var(--pannello-2);
+  min-width: 220px;
+}
+.pvp-cd-l {
+  font-size: 12px;
+  letter-spacing: 0.5px;
+  text-transform: uppercase;
+  color: var(--testo-soft);
+}
+.pvp-cd-v {
+  font-family: var(--font-titolo);
+  font-size: 30px;
+  letter-spacing: 1px;
+  color: var(--oro);
+}
+
+/* Badge "sei iscritto" */
+.pvp-badge-ok {
+  display: inline-block;
+  padding: 5px 14px;
+  border-radius: 20px;
+  background: var(--verde);
+  color: #f1e7ca;
+  font-family: var(--font-titolo);
+  letter-spacing: 0.6px;
+  text-transform: uppercase;
+  font-size: 14px;
+}
+.pvp-badge-ok.inline {
+  background: transparent;
+  color: var(--verde-scuro);
+  border: 1px solid var(--verde);
+  font-family: var(--font-corpo);
+  text-transform: none;
+}
+
+.pvp-info-riga {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px 18px;
+  justify-content: center;
+  font-size: 13px;
+  color: var(--testo-soft);
+}
+
+.pvp-azioni {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  justify-content: center;
+}
+
+.pvp-iscritto-sub {
+  max-width: 44ch;
+}
+
+/* Avvisi / messaggi */
+.pvp-avviso {
+  margin: 10px auto;
+  max-width: 46ch;
+  padding: 14px 16px;
+  border: 1px dashed var(--bordo-scuro);
+  border-radius: 10px;
+  background: rgba(168, 118, 26, 0.08);
+  text-align: center;
+  line-height: 1.5;
+  color: var(--testo);
+}
+.pvp-avviso.errore {
+  border-color: var(--rosso);
+  background: rgba(156, 42, 36, 0.08);
+  color: var(--rosso);
+}
+
+/* Rivelazione: campione + mia posizione */
+.pvp-campione-occhiello {
+  font-family: var(--font-titolo);
+  letter-spacing: 0.8px;
+  text-transform: uppercase;
+  font-size: 15px;
+  color: var(--oro);
+}
+
+.pvp-mia-posizione {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  margin: 14px 0;
+  padding: 14px 18px;
+  border: 2px solid var(--bordo-scuro);
+  border-radius: 12px;
+  background: var(--pannello);
+}
+.pvp-mia-posizione.vinto {
+  border-color: var(--oro);
+  box-shadow: inset 0 0 0 3px rgba(168, 118, 26, 0.25);
+}
+.pmp-grande {
+  font-family: var(--font-titolo);
+  font-size: 44px;
+  line-height: 1;
+  color: var(--oro);
+}
+.pmp-grande span {
+  font-size: 22px;
+}
+.pmp-nome {
+  font-family: var(--font-titolo);
+  font-size: 20px;
+  text-transform: uppercase;
+  letter-spacing: 0.4px;
+}
+.pmp-sub {
+  font-size: 13.5px;
+  color: var(--testo-soft);
+}
+
+/* Nickname accanto al nome squadra nella classifica PvP */
+.pvp-tag-nick {
+  margin-left: 8px;
+  font-size: 11px;
+  color: var(--testo-soft);
+  font-style: italic;
+}
+
+/* Tabella albo d'oro */
+.tab-albo .pt {
+  color: var(--oro);
+  font-family: var(--font-titolo);
+}

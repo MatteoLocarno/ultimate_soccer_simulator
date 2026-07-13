@@ -130,21 +130,21 @@ export function costruisciCampionato(
   return [tua, ...avversarie];
 }
 
-function golPoisson(lambda) {
+function golPoisson(lambda, rng = Math.random) {
   const L = Math.exp(-lambda);
   let k = 0, p = 1;
-  do { k++; p *= Math.random(); } while (p > L);
+  do { k++; p *= rng(); } while (p > L);
   return k - 1;
 }
 const limita = (v, min, max) => Math.max(min, Math.min(max, v));
 
-function simulaPartita(casa, ospite) {
+function simulaPartita(casa, ospite, rng = Math.random) {
   const diff = limita((casa.forza - ospite.forza) / DIFF_DIVISORE, -DIFF_CAP, DIFF_CAP);
   const lc = limita(GOL_BASE + VANTAGGIO_CASA + diff, 0.2, LAMBDA_MAX);
   const lo = limita(GOL_BASE - diff, 0.2, LAMBDA_MAX);
-  const fc = 0.82 + Math.random() * 0.36;
-  const fo = 0.82 + Math.random() * 0.36;
-  return { golCasa: golPoisson(lc * fc), golOspite: golPoisson(lo * fo) };
+  const fc = 0.82 + rng() * 0.36;
+  const fo = 0.82 + rng() * 0.36;
+  return { golCasa: golPoisson(lc * fc, rng), golOspite: golPoisson(lo * fo, rng) };
 }
 
 // --- attribuzione gol/assist per ruolo + overall ---------------------------
@@ -189,13 +189,13 @@ function peso(mappa, bonusRango, p, indiceRango) {
   const bonus = bonusRango[indiceRango] ?? 1;
   return base * Math.pow(Math.max(p.overall, 40) / 100, ESPONENTE_PESO) * bonus;
 }
-function scegliPesato(rosa, mappa, bonusRango, rango, escludi) {
+function scegliPesato(rosa, mappa, bonusRango, rango, escludi, rng = Math.random) {
   const pool = escludi ? rosa.filter((p) => p !== escludi) : rosa;
   if (!pool.length) return null;
   const pesi = pool.map((p) => peso(mappa, bonusRango, p, rango.get(p) ?? 99));
   const tot = pesi.reduce((a, b) => a + b, 0);
-  if (tot <= 0) return pool[Math.floor(Math.random() * pool.length)];
-  let r = Math.random() * tot;
+  if (tot <= 0) return pool[Math.floor(rng() * pool.length)];
+  let r = rng() * tot;
   for (let i = 0; i < pool.length; i++) {
     r -= pesi[i];
     if (r <= 0) return pool[i];
@@ -244,7 +244,10 @@ function calendario(n) {
   return giornate;
 }
 
-export function simulaStagione(squadre) {
+// rng opzionale: il singolo giocatore usa Math.random (default, ogni stagione
+// diversa); il PvP passa un RNG seedato dal torneo così TUTTI gli iscritti
+// vedono lo stesso identico campionato simulato (classifica ufficiale stabile).
+export function simulaStagione(squadre, rng = Math.random) {
   const n = squadre.length;
   const righe = {};
   squadre.forEach((s) => { righe[s.id] = rigaVuota(s); });
@@ -261,10 +264,10 @@ export function simulaStagione(squadre) {
     if (!golFatti || !team.rosa?.length) return;
     const rango = rangoSquadre.get(team.id);
     for (let i = 0; i < golFatti; i++) {
-      const marcatore = scegliPesato(team.rosa, PESO_GOL, BONUS_RANGO_GOL, rango, null);
+      const marcatore = scegliPesato(team.rosa, PESO_GOL, BONUS_RANGO_GOL, rango, null, rng);
       if (!marcatore) continue;
-      const conAssist = Math.random() < 0.72;
-      const assistman = conAssist ? scegliPesato(team.rosa, PESO_ASSIST, BONUS_RANGO_ASSIST, rango, marcatore) : null;
+      const conAssist = rng() < 0.72;
+      const assistman = conAssist ? scegliPesato(team.rosa, PESO_ASSIST, BONUS_RANGO_ASSIST, rango, marcatore, rng) : null;
       for (const [p, tipo] of [[marcatore, "gol"], [assistman, "assist"]]) {
         if (!p) continue;
         const k = `${team.id}__${p.nome}_${p.cognome}`;
@@ -282,7 +285,7 @@ export function simulaStagione(squadre) {
   stagione.forEach((giornata, gi) => {
     for (const [hi, ai] of giornata) {
       const casa = squadre[hi], ospite = squadre[ai];
-      const { golCasa, golOspite } = simulaPartita(casa, ospite);
+      const { golCasa, golOspite } = simulaPartita(casa, ospite, rng);
       registra(righe[casa.id], righe[ospite.id], golCasa, golOspite);
       segna(casa, golCasa);
       segna(ospite, golOspite);
@@ -295,7 +298,11 @@ export function simulaStagione(squadre) {
     }
     const ord = Object.values(righe).sort(ordinaClassifica);
     const pos = ord.findIndex((r) => r.utente) + 1;
-    andamentoUtente.push({ g: gi + 1, pos, punti: righe["__utente"].punti });
+    // Squadra "seguita": nel singolo giocatore ha id "__utente"; nel PvP è la
+    // squadra del visitatore (id diverso). Si prende la riga con utente=true,
+    // così l'andamento funziona in entrambi i casi (e non crasha se non c'è).
+    const rigaSeguita = ord.find((r) => r.utente);
+    andamentoUtente.push({ g: gi + 1, pos, punti: rigaSeguita ? rigaSeguita.punti : 0 });
     giornateSnap.push(
       ord.map((r) => ({
         id: r.id, nome: r.nome, colore: r.colore, utente: r.utente,
