@@ -16,6 +16,9 @@ export default function Footer() {
       </div>
 
       <nav className="footer-link">
+        <Link href="/come-si-gioca">Come si gioca</Link>
+        <Link href="/guida">Guida</Link>
+        <Link href="/faq">FAQ</Link>
         <Link href="/privacy">Privacy Policy</Link>
         <Link href="/cookie-policy">Cookie Policy</Link>
         <button type="button" onClick={resettaConsenso}>Gestisci cookie</button>

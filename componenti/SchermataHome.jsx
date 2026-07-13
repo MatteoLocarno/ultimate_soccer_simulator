@@ -2,7 +2,6 @@
 
 import { useEffect, useState } from "react";
 import Stemma from "@/componenti/Stemma";
-import AdSlot from "@/componenti/AdSlot";
 import DonaCaffe from "@/componenti/DonaCaffe";
 import BarraAccount from "@/componenti/BarraAccount";
 
@@ -106,9 +105,12 @@ export default function SchermataHome({ onAvvia }) {
         )}
       </div>
 
-      {/* Solo qui in home, lontano dal pulsante: nessun rischio di click
-          accidentali mentre l'utente naviga il gioco. */}
-      <AdSlot slot="8853641825" />
+      <nav className="home-scopri">
+        <span className="home-scopri-tit">Scopri di più</span>
+        <a href="/come-si-gioca">Come si gioca</a>
+        <a href="/guida">Guida e approfondimenti</a>
+        <a href="/faq">Domande frequenti</a>
+      </nav>
     </div>
   );
 }

@@ -28,11 +28,19 @@ export default function PrivacyPage() {
 
       <h2>2. Quali dati raccogliamo</h2>
       <p>
-        Il gioco <strong>non richiede registrazione né login</strong> e non
-        contiene moduli che raccolgono dati personali (nome, email, ecc.). In
-        particolare:
+        Il gioco è utilizzabile <strong>senza registrazione</strong>. La
+        creazione di un account è <strong>facoltativa</strong> e serve solo a
+        salvare i tuoi progressi. In particolare:
       </p>
       <ul>
+        <li>
+          <strong>Account (facoltativo)</strong>: se scegli di registrarti — via
+          email oppure con Google — trattiamo l&apos;indirizzo email
+          associato al tuo account, gestito tramite il servizio di
+          autenticazione di <strong>Supabase</strong>. Se accedi con Google,
+          riceviamo solo i dati base del profilo (email e nome) necessari
+          all&apos;accesso. Non è obbligatorio: puoi giocare senza account.
+        </li>
         <li>
           <strong>Preferenza sui cookie</strong>: la tua scelta (accetta o
           rifiuta) è salvata unicamente nel tuo browser, tramite archiviazione
@@ -82,7 +90,8 @@ export default function PrivacyPage() {
       <h2>5. Servizi di terze parti</h2>
       <ul>
         <li><strong>Netlify</strong> — hosting del sito.</li>
-        <li><strong>Supabase</strong> — database da cui il gioco legge i dati calcistici (giocatori, squadre, statistiche). Non contiene tuoi dati personali.</li>
+        <li><strong>Supabase</strong> — database dei dati calcistici (giocatori, squadre, statistiche) e servizio di autenticazione per l&apos;eventuale account (email di accesso).</li>
+        <li><strong>Google</strong> — accesso facoltativo &laquo;con Google&raquo; (OAuth), oltre alla pubblicità AdSense.</li>
         <li><strong>Google AdSense</strong> — pubblicità (solo con consenso).</li>
       </ul>
 

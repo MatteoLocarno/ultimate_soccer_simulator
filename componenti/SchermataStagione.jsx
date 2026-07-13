@@ -5,7 +5,6 @@ import { costruisciCampionato, simulaStagione } from "@/logica/simulazione";
 import Stemma from "@/componenti/Stemma";
 import Campo from "@/componenti/Campo";
 import AndamentoChart from "@/componenti/AndamentoChart";
-import AdSlot from "@/componenti/AdSlot";
 
 const VELOCITA = {
   standard: { ms: 650, label: "Standard" },
@@ -301,10 +300,6 @@ export default function SchermataStagione({ rosa, allenatore, capitano, nomeSqua
         <h2 className="sezione-titolo">Andamento in classifica</h2>
         <AndamentoChart andamento={andamentoUtente} nSquadre={classifica.length} />
       </section>
-
-      {/* Solo a fine partita, dopo tutti i contenuti: l'utente ha finito di
-          leggere il recap, nessun pulsante interattivo nelle vicinanze. */}
-      <AdSlot slot="8853641825" />
 
       <div className="azione-fissa doppia">
         <button className="btn secondario" onClick={() => onEsci?.(risultato)}>
