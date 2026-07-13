@@ -29,6 +29,17 @@ un fuoriclasse o una giovane promessa?
 
 Nessun login: si gioca subito.
 
+### 🌐 Sfida settimanale (PvP online)
+
+Oltre al giocatore singolo c'è la modalità **online**: crei un account, scegli un
+nickname e **iscrivi una rosa** draftata durante la settimana. **Sabato alle
+12:00** le iscrizioni si chiudono; **domenica** si simula un campionato tra tutte
+le squadre iscritte e vedi dove ti piazzi. Il migliore vince lo **Scudetto** ed
+entra nella classifica generale (albo d'oro).
+
+Il setup del backend PvP (schema Supabase, `pg_cron`, Edge Function) è descritto
+in [`supabase/pvp/README.md`](supabase/pvp/README.md).
+
 ---
 
 ## 🛠️ Stack

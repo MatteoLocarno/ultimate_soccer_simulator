@@ -15,20 +15,9 @@
 
 import { supabase, supabaseAttivo } from "@/lib/supabaseClient";
 import { creaRng } from "@/lib/rng";
-import {
-  simulaStagione,
-  bonusAllenatore,
-  forzaDaGiocatori,
-} from "@/logica/simulazione";
+import { simulaStagione, bonusAllenatore } from "@/logica/simulazione";
 
 export const pvpAttivo = supabaseAttivo;
-
-// Numero minimo di squadre in campionato: sotto questa soglia si riempie con
-// squadre storiche, così anche con pochi iscritti la stagione "sa di Serie A".
-const MIN_SQUADRE_CAMPIONATO = 20;
-// Bonus forza applicato alle squadre storiche riempitive (come nel singolo
-// giocatore: rappresenta l'apporto dell'allenatore/rosa completa).
-const BONUS_ALL_STORICHE = 0.8;
 
 // Un errore Supabase che indica "tabelle PvP non ancora create": lo si tratta
 // come "PvP non configurato" invece che come guasto.
@@ -216,21 +205,35 @@ export async function getClassificaGenerale(limite = 100) {
 }
 
 // --- Costruzione + simulazione del campionato (deterministica) --------------
+//
+//  Il campionato è composto SOLO dalle squadre iscritte: dipende unicamente da
+//  `entries` (le stesse per tutti, lette dal DB) e dal seme del torneo. Non usa
+//  i dati storici del gioco, così la classifica è IDENTICA su ogni dispositivo
+//  e sul server (la Edge Function usa lo stesso identico algoritmo). Se gli
+//  iscritti sono in numero dispari si aggiunge una squadra "Riposo" neutra
+//  (forza mediana), richiesta dal calendario a girone: gioca contro tutti allo
+//  stesso modo (equa) ed è esclusa dalla classifica degli iscritti.
 
-// Mescola in modo deterministico (Fisher–Yates con rng seedato).
-function mescolaDet(arr, rng) {
-  const a = [...arr];
-  for (let i = a.length - 1; i > 0; i--) {
-    const j = Math.floor(rng() * (i + 1));
-    [a[i], a[j]] = [a[j], a[i]];
-  }
-  return a;
+// Squadra neutra deterministica (rosa sintetica a forza data) per pareggiare il
+// numero di squadre quando gli iscritti sono dispari.
+function squadraRiposo(forza) {
+  const ov = Math.round(forza);
+  const ruoli = ["P", "D", "D", "D", "D", "C", "C", "C", "A", "A", "A"];
+  return {
+    id: "__riposo",
+    nome: "Riposo",
+    squadra: "Riposo",
+    colore: "#8a774f",
+    forza,
+    utente: false,
+    storica: true,
+    rosa: ruoli.map((r, i) => ({ nome: "Riserva", cognome: String(i + 1), ruolo: r, overall: ov })),
+  };
 }
 
-// Costruisce le squadre del campionato: una per iscritto + eventuali storiche
-// riempitive fino a MIN_SQUADRE_CAMPIONATO (e comunque numero pari, richiesto
-// dal calendario). `squadreDB` sono le squadre-stagione già caricate dal gioco.
-export function costruisciCampionatoPvp(entries, viewerUserId, squadreDB, rng) {
+// Costruisce le squadre del campionato dagli iscritti (ordine per id crescente,
+// come li ritorna getEntries: fondamentale per il determinismo).
+export function costruisciCampionatoPvp(entries, viewerUserId) {
   const squadre = entries.map((e) => {
     const titolari = e.titolari || [];
     return {
@@ -247,37 +250,11 @@ export function costruisciCampionatoPvp(entries, viewerUserId, squadreDB, rng) {
     };
   });
 
-  // Dimensione target: almeno MIN_SQUADRE_CAMPIONATO, sempre pari.
-  let target = Math.max(MIN_SQUADRE_CAMPIONATO, squadre.length);
-  if (target % 2 === 1) target += 1;
-  const daRiempire = target - squadre.length;
-
-  if (daRiempire > 0 && Array.isArray(squadreDB) && squadreDB.length) {
-    // Una sola squadra-stagione per club, scelta in modo deterministico.
-    const perClub = new Map();
-    for (const s of squadreDB) {
-      if (!perClub.has(s.squadra)) perClub.set(s.squadra, []);
-      perClub.get(s.squadra).push(s);
-    }
-    const club = mescolaDet([...perClub.keys()], rng).slice(0, daRiempire);
-    for (const c of club) {
-      const opzioni = perClub.get(c);
-      const s = opzioni[Math.floor(rng() * opzioni.length)];
-      squadre.push({
-        id: `s${s.id}`,
-        nome: `${s.squadra} ${s.anno}`.trim(),
-        squadra: s.squadra,
-        colore: s.colore,
-        forza: forzaDaGiocatori(s.giocatori) + BONUS_ALL_STORICHE,
-        utente: false,
-        storica: true,
-        rosa: (s.giocatori || []).slice(0, 16).map((g) => ({
-          nome: g.nome, cognome: g.cognome,
-          ruolo: (g.ruoli && g.ruoli[0]?.ruolo) || g.ruolo || "C",
-          overall: g.overall,
-        })),
-      });
-    }
+  // Numero dispari → aggiungi la squadra "Riposo" (forza mediana degli iscritti).
+  if (squadre.length % 2 === 1) {
+    const forze = squadre.map((s) => s.forza).sort((a, b) => a - b);
+    const mediana = forze.length ? forze[Math.floor(forze.length / 2)] : 75;
+    squadre.push(squadraRiposo(mediana));
   }
 
   return squadre;
@@ -285,15 +262,17 @@ export function costruisciCampionatoPvp(entries, viewerUserId, squadreDB, rng) {
 
 // Simula il campionato del torneo (deterministico). Torna { squadre, ...esito }
 // con classifica, marcatori, assist, andamento — pronto per la UI.
+// `squadreDB` è accettato per compatibilità con i chiamanti ma NON usato: il
+// campionato è composto solo dalle squadre iscritte.
 export function simulaCampionatoPvp(torneo, entries, viewerUserId, squadreDB) {
   const rng = creaRng(torneo?.seed || torneo?.settimana || "dinastia");
-  const squadre = costruisciCampionatoPvp(entries, viewerUserId, squadreDB, rng);
+  const squadre = costruisciCampionatoPvp(entries, viewerUserId);
   const esito = simulaStagione(squadre, rng);
   return { squadre, ...esito };
 }
 
-// Estrae dalla classifica simulata le sole squadre di iscritti reali, con la
-// loro posizione tra gli iscritti (per "sei arrivato Xº su N").
+// Estrae dalla classifica simulata le sole squadre di iscritti reali (esclude
+// la "Riposo"), con la loro posizione tra gli iscritti ("sei arrivato Xº su N").
 export function classificaIscritti(classifica) {
   const soloUtenti = classifica.filter((r) => !r.storica && String(r.id).startsWith("e"));
   return soloUtenti.map((r, i) => ({ ...r, posIscritti: i + 1 }));
