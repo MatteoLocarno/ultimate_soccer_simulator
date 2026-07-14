@@ -2,7 +2,7 @@
 
 import { useEffect, useRef, useState } from "react";
 import { NOMI_RUOLO } from "@/logica/formazione";
-import { pescaGiocatori, pescaAllenatori } from "@/logica/mercato";
+import { pescaGiocatori, pescaAllenatori, chiavePersona } from "@/logica/mercato";
 import Dado from "@/componenti/Dado";
 
 const CAMBI_GIOCATORI = 3; // cambi giocatore disponibili ogni estate
@@ -40,7 +40,9 @@ export default function MercatoEstivo({ rosa, allenatore, capitano, squadre, all
   }, []);
 
   const titolari = rosaLavoro.filter((p) => p.slot.tipo === "titolare");
-  const idsInRosa = () => new Set(rosaLavoro.filter(Boolean).map((p) => p.giocatore._id));
+  // Chiavi persona (nome|cognome) già in rosa: escluse dal dado per evitare
+  // doppioni (la stessa persona può esistere in più squadre-stagione).
+  const personeInRosa = () => new Set(rosaLavoro.filter(Boolean).map((p) => chiavePersona(p.giocatore)));
 
   function apriPicker(sel) {
     setSelezione(sel);
@@ -66,7 +68,7 @@ export default function MercatoEstivo({ rosa, allenatore, capitano, squadre, all
       let pescati;
       if (selezione.tipo === "giocatore") {
         const pick = rosaLavoro[selezione.indice];
-        pescati = pescaGiocatori(squadre, pick.slot, pick.giocatore, 10, idsInRosa());
+        pescati = pescaGiocatori(squadre, pick.slot, pick.giocatore, 10, personeInRosa());
       } else {
         const escl = new Set(allLavoro ? [`all-${allLavoro.nome}-${allLavoro.cognome}`] : []);
         pescati = pescaAllenatori(allenatori, allLavoro, 10, escl);
