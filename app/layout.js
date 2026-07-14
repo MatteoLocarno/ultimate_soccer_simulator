@@ -27,6 +27,10 @@ export const metadata = {
     type: "website",
     locale: "it_IT",
   },
+  // Verifica proprietà del sito per Google Search Console (metodo "tag HTML").
+  verification: {
+    google: "N58QgNCiFOmlqWfrcyexonodXA-FHRSFJmkulIWMjEg",
+  },
   // Verifica proprietà del sito per AdSense: metodo "meta tag", statico e
   // riconosciuto da Google senza bisogno di eseguire JS (a differenza dello
   // script adsbygoogle, che next/script inietta solo lato client — il
