@@ -2,10 +2,15 @@
 //  MERCATO DI FINE STAGIONE
 // ----------------------------------------------------------------------------
 //  A fine stagione il giocatore può fare alcuni cambi "a sorte": sceglie chi
-//  cambiare, tira il dado e vengono pescati 10 giocatori casuali di quel
-//  ruolo dal database (le squadre già caricate), con la GARANZIA che almeno
-//  uno sia nell'intorno (±1 overall) di chi si sta sostituendo. Stessa cosa
-//  per l'allenatore.
+//  cambiare, tira il dado e vengono pescati 10 giocatori casuali dello STESSO
+//  RUOLO (es. un terzino destro, non "un difensore qualsiasi") dal database
+//  (le squadre già caricate), con la GARANZIA che almeno uno sia nell'intorno
+//  (±1 overall) di chi si sta sostituendo. Stessa cosa per l'allenatore.
+//
+//  I candidati sono UNICI per persona: la stessa persona compare in più
+//  squadre-stagione (es. Bakayoko all'Inter e al Milan), ma nel dado deve
+//  uscire una sola volta (niente doppioni). Si dedup per nome+cognome tenendo
+//  la variante col miglior overall in quel ruolo.
 // ============================================================================
 
 import { macroRuolo } from "@/logica/formazione";
@@ -20,31 +25,38 @@ function mescola(arr) {
 }
 
 const idGiocatore = (squadra, g) => `${squadra.id}__${g.nome}_${g.cognome}`;
+// Identità "persona" (indipendente dalla squadra-stagione): serve per non far
+// uscire due volte lo stesso giocatore e per escludere chi è già in rosa.
+export const chiavePersona = (g) => `${(g.nome || "").toLowerCase()}|${(g.cognome || "").toLowerCase()}`;
 
-// Tutti i candidati del database per un macro-ruolo (P/D/C/A), escludendo gli
-// id già in rosa. Overall = miglior ruolo del giocatore in quel reparto.
-function candidatiPerMacro(squadre, macro, escludiIds) {
-  const out = [];
+// Candidati del database i cui ruoli soddisfano `filtroRuolo`, UNICI per
+// persona (miglior overall tra le sue varianti valide) ed escludendo le
+// persone già in rosa. Overall/ruolo = il miglior ruolo che passa il filtro.
+function raccogliCandidati(squadre, filtroRuolo, escludiPersone) {
+  const perPersona = new Map();
   for (const s of squadre) {
     for (const g of s.giocatori || []) {
-      const ruoliMacro = (g.ruoli || []).filter(
-        (r) => macroRuolo(r.ruolo) === macro && Number.isFinite(Number(r.overall))
+      const ruoliOk = (g.ruoli || []).filter(
+        (r) => filtroRuolo(r.ruolo) && Number.isFinite(Number(r.overall))
       );
-      if (!ruoliMacro.length) continue;
-      const migliore = ruoliMacro.reduce((a, b) => (b.overall > a.overall ? b : a));
-      const _id = idGiocatore(s, g);
-      if (escludiIds.has(_id)) continue;
-      out.push({
+      if (!ruoliOk.length) continue;
+      const k = chiavePersona(g);
+      if (escludiPersone.has(k)) continue;
+      const migliore = ruoliOk.reduce((a, b) => (b.overall > a.overall ? b : a));
+      const cand = {
         nome: g.nome,
         cognome: g.cognome,
         ruolo: migliore.ruolo,
         overall: Math.round(Number(migliore.overall)),
-        _id,
+        _id: idGiocatore(s, g),
         provenienza: { squadra: s.squadra, anno: s.anno, colore: s.colore },
-      });
+      };
+      const esistente = perPersona.get(k);
+      // Tiene la variante col miglior overall (il giocatore al suo picco).
+      if (!esistente || cand.overall > esistente.overall) perPersona.set(k, cand);
     }
   }
-  return out;
+  return [...perPersona.values()];
 }
 
 // Garantisce che nell'elenco ci sia almeno un elemento nell'intorno ±1 di
@@ -66,11 +78,27 @@ function garantisciVicino(scelti, pool, overallRif) {
   return scelti;
 }
 
-// 10 giocatori casuali per lo slot indicato, con almeno uno vicino (±1) a
-// `giocatoreAttuale`. escludiIds: id già presenti in rosa (per non ripescarli).
-export function pescaGiocatori(squadre, slot, giocatoreAttuale, n = 10, escludiIds = new Set()) {
+// 10 giocatori casuali dello STESSO RUOLO dello slot (es. terzino destro), con
+// almeno uno vicino (±1) a `giocatoreAttuale`. escludiPersone: chiavi persona
+// (nome|cognome) già in rosa, per non ripescarle e non fare doppioni.
+// Rete di sicurezza: se quel ruolo esatto non ha (abbastanza) candidati nel
+// database, si allarga al reparto (macro-ruolo) — così il dado non resta mai
+// vuoto per un ruolo raro.
+export function pescaGiocatori(squadre, slot, giocatoreAttuale, n = 10, escludiPersone = new Set()) {
+  const ruolo = String(slot?.ruolo || "").toUpperCase();
   const macro = macroRuolo(slot?.ruolo) || "C";
-  const pool = candidatiPerMacro(squadre, macro, escludiIds);
+
+  let pool = ruolo
+    ? raccogliCandidati(squadre, (r) => String(r).toUpperCase() === ruolo, escludiPersone)
+    : [];
+  // Rete di sicurezza: solo se NESSUN giocatore ha quel ruolo esatto (evenienza
+  // rarissima) si ripiega sul reparto, così il dado non resta mai vuoto. Se
+  // invece i candidati di ruolo ci sono ma sono pochi (es. 5 terzini destri),
+  // si mostrano quelli — meglio pochi ma del ruolo giusto che tutto il reparto.
+  if (pool.length === 0) {
+    pool = raccogliCandidati(squadre, (r) => macroRuolo(r) === macro, escludiPersone);
+  }
+
   if (pool.length <= n) return mescola(pool);
   const scelti = mescola(pool).slice(0, n);
   return mescola(garantisciVicino(scelti, pool, giocatoreAttuale?.overall));
