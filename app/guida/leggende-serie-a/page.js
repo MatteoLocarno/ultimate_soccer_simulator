@@ -1,5 +1,6 @@
 import Link from "next/link";
 import AdSlot from "@/componenti/AdSlot";
+import AdAncora from "@/componenti/AdAncora";
 
 export const metadata = {
   title: "Le leggende della Serie A per ruolo — Dinastia Scudetto",
@@ -90,6 +91,7 @@ export default function LeggendePage() {
       </p>
 
       <Link href="/guida" className="legale-torna">← Torna alla guida</Link>
+      <AdAncora slot="8853641825" />
     </main>
   );
 }

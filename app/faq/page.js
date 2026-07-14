@@ -1,5 +1,6 @@
 import Link from "next/link";
 import AdSlot from "@/componenti/AdSlot";
+import AdAncora from "@/componenti/AdAncora";
 
 export const metadata = {
   title: "Domande frequenti (FAQ) — Dinastia Scudetto",
@@ -86,6 +87,7 @@ export default function FaqPage() {
       </p>
 
       <Link href="/" className="legale-torna">← Torna al gioco</Link>
+      <AdAncora slot="8853641825" />
     </main>
   );
 }

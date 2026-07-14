@@ -3282,3 +3282,51 @@ button {
   border-radius: 18px;
 }
 .home-scopri a:hover { background: rgba(68, 102, 58, 0.1); text-decoration: none; }
+
+/* ── Banner pubblicitario ancorato in basso (solo pagine di contenuto) ──── */
+.ad-ancora {
+  position: fixed;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  z-index: 55;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 74px;
+  padding: 6px 44px calc(6px + env(safe-area-inset-bottom));
+  background: var(--pannello);
+  border-top: 2px solid var(--bordo-scuro);
+  box-shadow: 0 -6px 18px rgba(45, 36, 23, 0.15);
+}
+.ad-ancora .adsbygoogle {
+  max-width: 970px;
+  margin: 0 auto;
+}
+.ad-ancora-label {
+  position: absolute;
+  top: 3px;
+  left: 12px;
+  font-size: 9px;
+  letter-spacing: 1px;
+  text-transform: uppercase;
+  color: var(--testo-soft);
+}
+.ad-ancora-chiudi {
+  position: absolute;
+  top: 4px;
+  right: 8px;
+  width: 26px;
+  height: 26px;
+  border: 1px solid var(--bordo-scuro);
+  border-radius: 50%;
+  background: var(--pannello);
+  color: var(--testo-soft);
+  font-size: 18px;
+  line-height: 1;
+  cursor: pointer;
+  z-index: 1;
+}
+.ad-ancora-chiudi:hover { color: var(--testo); }
+/* spazio in fondo alle pagine di contenuto, così l'anchor non copre il testo */
+.pagina-contenuto { padding-bottom: 96px; }

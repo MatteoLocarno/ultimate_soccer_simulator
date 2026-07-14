@@ -1,4 +1,5 @@
 import Link from "next/link";
+import AdAncora from "@/componenti/AdAncora";
 
 export const metadata = {
   title: "Guida e approfondimenti — Dinastia Scudetto",
@@ -58,6 +59,7 @@ export default function GuidaPage() {
       </div>
 
       <Link href="/" className="legale-torna">← Torna al gioco</Link>
+      <AdAncora slot="8853641825" />
     </main>
   );
 }

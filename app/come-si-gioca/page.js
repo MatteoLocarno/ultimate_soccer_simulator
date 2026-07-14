@@ -1,5 +1,6 @@
 import Link from "next/link";
 import AdSlot from "@/componenti/AdSlot";
+import AdAncora from "@/componenti/AdAncora";
 
 export const metadata = {
   title: "Come si gioca a Dinastia Scudetto — Guida completa",
@@ -117,6 +118,7 @@ export default function ComeSiGiocaPage() {
       </p>
 
       <Link href="/" className="legale-torna">← Torna al gioco</Link>
+      <AdAncora slot="8853641825" />
     </main>
   );
 }

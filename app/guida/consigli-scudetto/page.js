@@ -1,5 +1,6 @@
 import Link from "next/link";
 import AdSlot from "@/componenti/AdSlot";
+import AdAncora from "@/componenti/AdAncora";
 
 export const metadata = {
   title: "Consigli per vincere lo Scudetto — Dinastia Scudetto",
@@ -85,6 +86,7 @@ export default function ConsigliPage() {
       </p>
 
       <Link href="/guida" className="legale-torna">← Torna alla guida</Link>
+      <AdAncora slot="8853641825" />
     </main>
   );
 }
