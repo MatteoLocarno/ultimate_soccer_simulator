@@ -11,6 +11,7 @@ import SchermataRosa from "@/componenti/SchermataRosa";
 import SchermataStagione from "@/componenti/SchermataStagione";
 import MercatoEstivo from "@/componenti/MercatoEstivo";
 import SchermataFinale from "@/componenti/SchermataFinale";
+import PvpOnline from "@/componenti/pvp/PvpOnline";
 
 // Una dinastia dura al massimo 5 stagioni; poi si arriva al bilancio finale.
 const MAX_STAGIONI = 5;
@@ -133,7 +134,18 @@ export default function Gioco() {
       {/* Il widget "dona un caffè" si vede SOLO in home (SchermataHome, col
           suo banner sopra lo stemma): altrove coprirebbe altri elementi
           dell'interfaccia di gioco. */}
-      {fase === "home" && <SchermataHome onAvvia={() => setFase("setup")} />}
+      {fase === "home" && (
+        <SchermataHome onAvvia={() => setFase("setup")} onOnline={() => setFase("pvp")} />
+      )}
+
+      {fase === "pvp" && (
+        <PvpOnline
+          dati={dati}
+          squadrePronte={squadrePronte}
+          progresso={progresso}
+          onEsci={() => setFase("home")}
+        />
+      )}
 
       {fase === "setup" && (
         <SchermataSetup

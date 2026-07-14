@@ -11,9 +11,8 @@ import BarraAccount from "@/componenti/BarraAccount";
 const CHIAVE_VISITATO = "ds_visitato";
 
 // Schermata iniziale: stemma + brand + regole rapide. La CTA porta al setup.
-export default function SchermataHome({ onAvvia }) {
+export default function SchermataHome({ onAvvia, onOnline }) {
   const [mostraDona, setMostraDona] = useState(false);
-  const [mostraOnline, setMostraOnline] = useState(false);
 
   useEffect(() => {
     try {
@@ -81,28 +80,21 @@ export default function SchermataHome({ onAvvia }) {
 
         <button
           className="modalita-card online"
-          onClick={() => setMostraOnline(true)}
-          aria-expanded={mostraOnline}
+          onClick={onOnline}
         >
           <span className="mc-icona">🌐</span>
           <span className="mc-testo">
             <span className="mc-nome">
-              Online <span className="mc-badge">Presto</span>
+              Sfida settimanale <span className="mc-badge nuovo">Nuovo</span>
             </span>
             <span className="mc-desc">
-              Sfida altri allenatori in tempo reale con la tua squadra di
-              leggende.
+              Iscrivi la tua rosa di leggende: domenica si gioca un campionato
+              tra tutti gli allenatori iscritti. Vinci lo Scudetto e scala
+              l&apos;albo d&apos;oro.
             </span>
           </span>
           <span className="mc-freccia">›</span>
         </button>
-
-        {mostraOnline && (
-          <p className="modalita-avviso">
-            🚧 La modalità <b>Online</b> arriverà in futuro. Per ora costruisci
-            la tua dinastia in giocatore singolo!
-          </p>
-        )}
       </div>
 
       <nav className="home-scopri">
