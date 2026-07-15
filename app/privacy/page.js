@@ -72,8 +72,11 @@ export default function PrivacyPage() {
         Se acconsenti, questo sito mostra annunci tramite <strong>Google
         AdSense</strong>. Google e i suoi partner utilizzano cookie per
         erogare annunci — anche personalizzati — in base alle tue visite a
-        questo e ad altri siti, e per misurarne il rendimento. Non caricheremo
-        alcuno script pubblicitario finché non avrai dato il consenso.
+        questo e ad altri siti, e per misurarne il rendimento. Il codice di
+        AdSense è presente sul sito, ma <strong>nessun annuncio viene mostrato
+        e nessun cookie pubblicitario impostato finché non dai il
+        consenso</strong>; per gli utenti UE il consenso è gestito anche tramite
+        il messaggio sulla privacy di Google.
       </p>
       <p>
         Puoi gestire le tue preferenze pubblicitarie direttamente da Google su{" "}

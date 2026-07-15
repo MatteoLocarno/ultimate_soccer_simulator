@@ -43,9 +43,13 @@ export default function CookiePolicyPage() {
 
       <h2>3. Cookie pubblicitari (solo con consenso)</h2>
       <p>
-        Vengono attivati <strong>unicamente se scegli &laquo;Accetta&raquo;</strong>{" "}
-        nel banner. Fino a quel momento nessuno script pubblicitario viene
-        caricato.
+        Il codice di <strong>Google AdSense</strong> è presente sul sito per
+        predisporre il sistema pubblicitario, ma gli <strong>annunci vengono
+        mostrati e i relativi cookie impostati unicamente se scegli
+        &laquo;Accetta&raquo;</strong> nel banner. Fino a quel momento non viene
+        mostrato alcun annuncio. Per gli utenti nell&apos;Unione Europea il
+        consenso agli annunci è gestito anche tramite il messaggio sulla privacy
+        di Google.
       </p>
       <ul>
         <li>
