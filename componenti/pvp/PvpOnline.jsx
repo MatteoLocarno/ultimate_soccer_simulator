@@ -20,6 +20,7 @@ import SchermataSetup, { COLORI } from "@/componenti/SchermataSetup";
 import SchermataDraft from "@/componenti/SchermataDraft";
 import PvpRisultati from "@/componenti/pvp/PvpRisultati";
 import PvpClassificaGenerale from "@/componenti/pvp/PvpClassificaGenerale";
+import PvpMiaSquadra from "@/componenti/pvp/PvpMiaSquadra";
 
 // Conto alla rovescia leggibile ("2g 4h 12m") fino a una data.
 function conto(target, adesso) {
@@ -121,8 +122,11 @@ export default function PvpOnline({ dati, squadrePronte, progresso, onEsci }) {
     }
   }
 
-  // Avvia la creazione squadra: richiede login e nickname.
+  // Avvia la creazione squadra: richiede login e nickname. L'iscrizione è
+  // definitiva — se esiste già una rosa per questa settimana non si rifà il
+  // draft (blocco anche qui, non solo nell'interfaccia).
   function iniziaIscrizione() {
+    if (miaEntry) return;
     if (!utente) { setMostraLogin(true); return; }
     if (!profilo) { setMostraNickname(true); return; }
     setNomeSquadra("");
@@ -243,8 +247,12 @@ export default function PvpOnline({ dati, squadrePronte, progresso, onEsci }) {
                 <span className="pvp-cd-l">Iscrizioni aperte ancora</span>
                 <span className="pvp-cd-v">{conto(torneo.chiusura_iscrizioni, adesso)}</span>
               </div>
+              <p className="pvp-bloccata">
+                🔒 L&apos;iscrizione è definitiva: la rosa non si può rifare. Qui sotto
+                puoi rivederla mentre aspetti la domenica.
+              </p>
+              <PvpMiaSquadra entry={miaEntry} />
               <div className="pvp-azioni">
-                <button className="btn secondario" onClick={iniziaIscrizione}>Rifai la squadra</button>
                 <button className="btn" onClick={() => setVista("generale")}>Classifica generale →</button>
               </div>
             </div>
@@ -284,7 +292,10 @@ export default function PvpOnline({ dati, squadrePronte, progresso, onEsci }) {
               <span className="pvp-cd-v">{conto(torneo.rivelazione, adesso)}</span>
             </div>
             {miaEntry ? (
-              <p className="pvp-badge-ok inline">✓ Sei in gara con «{miaEntry.nome_squadra}»</p>
+              <>
+                <p className="pvp-badge-ok inline">✓ Sei in gara con «{miaEntry.nome_squadra}»</p>
+                <PvpMiaSquadra entry={miaEntry} />
+              </>
             ) : (
               <p className="pvp-avviso">Non ti sei iscritto in tempo per questa settimana.</p>
             )}
