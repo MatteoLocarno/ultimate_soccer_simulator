@@ -45,7 +45,7 @@ export default function ModaleAuth({ onChiudi }) {
         const { error } = await supabase.auth.signUp({
           email: email.trim(),
           password,
-          options: { emailRedirectTo: window.location.origin },
+          options: { emailRedirectTo: `${window.location.origin}/auth/callback` },
         });
         if (error) throw error;
         setInfo("Ti abbiamo inviato una mail di conferma: aprila per attivare l'account, poi torna qui ad accedere.");
@@ -66,7 +66,7 @@ export default function ModaleAuth({ onChiudi }) {
     setInfo(null);
     const { error } = await supabase.auth.signInWithOAuth({
       provider: "google",
-      options: { redirectTo: window.location.origin },
+      options: { redirectTo: `${window.location.origin}/auth/callback` },
     });
     // In caso di successo la pagina viene reindirizzata a Google, quindi qui
     // si arriva solo se c'è un errore.
