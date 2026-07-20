@@ -12,10 +12,22 @@ import PalloneStorico from "@/componenti/PalloneStorico";
 // passaggio a una nuova squadra invece di uno scatto secco.
 const DURATA_TRANSIZIONE = 1300;
 
-const SKIP = [
-  { tipo: "tutto", etichetta: "Cambia tutto", icona: "🔄" },
-  { tipo: "stagione", etichetta: "Stessa stagione", icona: "📅" },
-  { tipo: "club", etichetta: "Stesso club", icona: "🛡️" },
+// I due BONUS del draft: uno a testa per tutta la partita. Non cambiano
+// stagione, la tengono come riferimento — servono a rigirare la proposta
+// restando nella stessa annata, da due angolazioni diverse.
+const BONUS = [
+  {
+    tipo: "squadra-stagione",
+    icona: "🛡️",
+    nome: "Cambia squadra",
+    desc: "Un altro club della stessa stagione, rosa completa",
+  },
+  {
+    tipo: "mix-stagione",
+    icona: "🌍",
+    nome: "Mix di stagione",
+    desc: "I migliori di quell'annata, presi da più club",
+  },
 ];
 
 // Ordine e nomi dei reparti per raggruppare la rosa completa (che può
@@ -112,6 +124,9 @@ export default function SchermataDraft({ slot, squadre, allenatori: listaAllenat
   const [assegnazioni, setAssegnazioni] = useState(() => Array(totaleSlot).fill(null));
   const [candidati, setCandidati] = useState([]);
   const [squadraEstratta, setSquadraEstratta] = useState(null);
+  // Annata mostrata quando i candidati non vengono da un singolo club ma da un
+  // "mix di stagione" (bonus): serve solo per l'etichetta in alto.
+  const [mixAnno, setMixAnno] = useState(null);
   const [allenatori, setAllenatori] = useState(null);
   const [allenatoreScelto, setAllenatoreScelto] = useState(null);
   // Giocatore selezionato ma non ancora piazzato: quando ci sono più slot
@@ -138,12 +153,13 @@ export default function SchermataDraft({ slot, squadre, allenatori: listaAllenat
     }
   }
 
-  function applicaConTransizione(nuoviCandidati, nuovaSquadra) {
+  function applicaConTransizione(nuoviCandidati, nuovaSquadra, annoMix = null) {
     setInTransizione(true);
     clearTimeout(timeoutTransizione.current);
     timeoutTransizione.current = setTimeout(() => {
       setCandidati(nuoviCandidati);
       setSquadraEstratta(nuovaSquadra || null);
+      setMixAnno(nuovaSquadra ? null : annoMix);
       setInTransizione(false);
     }, DURATA_TRANSIZIONE);
   }
@@ -186,14 +202,23 @@ export default function SchermataDraft({ slot, squadre, allenatori: listaAllenat
     }
   }, [assegnazioni, allenatoreScelto]); // eslint-disable-line react-hooks/exhaustive-deps
 
-  function usaSkip(tipo) {
+  // Consuma un bonus. Entrambi restano ancorati all'annata attualmente in
+  // gioco: "Cambia squadra" propone un altro club di quella stagione,
+  // "Mix di stagione" pesca dai migliori di quell'annata su più club.
+  function usaBonus(tipo) {
     if (skipUsati.includes(tipo) || !faseGiocatori || inTransizione || giocatoreDaPiazzare) return;
+    // L'annata di riferimento è quella mostrata ora (squadra estratta o mix).
+    const anno = squadraEstratta?.anno || mixAnno;
+    if (!anno) return; // nessun riferimento: bonus non utilizzabile ora
     setSkipUsati((s) => [...s, tipo]);
     const ruoliEsauriti = calcolaRuoliEsauriti(slot, assegnazioni);
     const ruoliDettagliatiAperti = calcolaRuoliDettagliatiAperti(slot, assegnazioni);
-    const { candidati: nuovi, squadra } = estraiCandidati(idsUsati(), personeUsate(), squadre, { tipo }, ruoliEsauriti, ruoliDettagliatiAperti);
+    const scope = { tipo, anno, esclusoId: squadraEstratta?.id ?? null };
+    const { candidati: nuovi, squadra, anno: annoMix } = estraiCandidati(
+      idsUsati(), personeUsate(), squadre, scope, ruoliEsauriti, ruoliDettagliatiAperti
+    );
     registraSquadra(squadra);
-    applicaConTransizione(nuovi, squadra);
+    applicaConTransizione(nuovi, squadra, annoMix || anno);
   }
 
   function piazzaGiocatore(c, indice) {
@@ -326,25 +351,42 @@ export default function SchermataDraft({ slot, squadre, allenatori: listaAllenat
                 </div>
               ) : (
                 <div className="squadra-corrente squadra-corrente-mix">
+                  <div className="squadra-corrente-stemma">
+                    <span className="squadra-corrente-mix-ic">🌍</span>
+                  </div>
                   <div className="squadra-corrente-testo">
-                    <div className="squadra-corrente-nome">Mix di giocatori</div>
-                    <div className="squadra-corrente-anno">da tutto il database</div>
+                    <div className="squadra-corrente-nome">Mix di stagione</div>
+                    <div className="squadra-corrente-anno">
+                      {mixAnno ? `i migliori del ${mixAnno}` : "da più club"}
+                    </div>
                   </div>
                 </div>
               )}
 
-              <div className="skip-bar">
-                {SKIP.map((s) => (
-                  <button
-                    key={s.tipo}
-                    className="skip-btn"
-                    disabled={skipUsati.includes(s.tipo) || inTransizione}
-                    onClick={() => usaSkip(s.tipo)}
-                    title={`Ripesca i candidati: ${s.etichetta}`}
-                  >
-                    <span className="skip-ic">{s.icona}</span> {s.etichetta}
-                  </button>
-                ))}
+              <div className="bonus-bar">
+                <span className="bonus-tit">
+                  Bonus <em>{BONUS.length - skipUsati.length}/{BONUS.length}</em>
+                </span>
+                <div className="bonus-lista">
+                  {BONUS.map((b) => {
+                    const usato = skipUsati.includes(b.tipo);
+                    return (
+                      <button
+                        key={b.tipo}
+                        className={`bonus-btn ${usato ? "usato" : ""}`}
+                        disabled={usato || inTransizione}
+                        onClick={() => usaBonus(b.tipo)}
+                        title={usato ? "Bonus già usato" : b.desc}
+                      >
+                        <span className="bonus-ic">{usato ? "✓" : b.icona}</span>
+                        <span className="bonus-testo">
+                          <span className="bonus-nome">{b.nome}</span>
+                          <span className="bonus-desc">{usato ? "Già usato" : b.desc}</span>
+                        </span>
+                      </button>
+                    );
+                  })}
+                </div>
               </div>
 
               {inTransizione ? (

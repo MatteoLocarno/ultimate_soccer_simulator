@@ -3564,3 +3564,78 @@ button {
   border-radius: 50%;
   animation: acc-gira 0.8s linear infinite;
 }
+
+/* ── Bonus del draft (2 rerolls, uno a testa per partita) ──────────────── */
+.bonus-bar {
+  display: grid;
+  gap: 8px;
+  margin: 10px 0 14px;
+}
+.bonus-tit {
+  font-family: var(--font-titolo);
+  font-size: 11px;
+  letter-spacing: 1.6px;
+  text-transform: uppercase;
+  color: var(--testo-soft);
+}
+.bonus-tit em {
+  font-style: normal;
+  color: var(--oro);
+  font-weight: 700;
+}
+.bonus-lista {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 8px;
+}
+@media (max-width: 460px) {
+  .bonus-lista { grid-template-columns: 1fr; }
+}
+.bonus-btn {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 9px 11px;
+  border: 1px solid var(--oro);
+  border-radius: 10px;
+  background: var(--pannello);
+  color: var(--testo);
+  text-align: left;
+  cursor: pointer;
+  box-shadow: 2px 2px 0 rgba(0, 0, 0, 0.14);
+  transition: background 0.12s, transform 0.08s;
+}
+.bonus-btn:hover:not(:disabled) { background: rgba(168, 118, 26, 0.14); }
+.bonus-btn:active:not(:disabled) { transform: translate(1px, 1px); box-shadow: 1px 1px 0 rgba(0, 0, 0, 0.14); }
+.bonus-btn:disabled { cursor: default; }
+.bonus-btn.usato {
+  border-color: var(--bordo);
+  border-style: dashed;
+  opacity: 0.55;
+  box-shadow: none;
+}
+.bonus-ic {
+  flex: 0 0 auto;
+  width: 26px;
+  height: 26px;
+  display: grid;
+  place-items: center;
+  border-radius: 50%;
+  background: rgba(168, 118, 26, 0.16);
+  font-size: 14px;
+}
+.bonus-btn.usato .bonus-ic { background: rgba(0, 0, 0, 0.07); color: var(--verde); }
+.bonus-testo { display: grid; gap: 1px; min-width: 0; }
+.bonus-nome {
+  font-family: var(--font-titolo);
+  font-size: 13.5px;
+  letter-spacing: 0.3px;
+  text-transform: uppercase;
+  line-height: 1.15;
+}
+.bonus-desc {
+  font-size: 11.5px;
+  line-height: 1.25;
+  color: var(--testo-soft);
+}
+.squadra-corrente-mix-ic { font-size: 26px; }

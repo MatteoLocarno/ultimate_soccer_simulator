@@ -138,14 +138,12 @@ function poolSquadraSingola(squadra, idsUsati, personeUsate, ruoliDettagliatiApe
   return pool;
 }
 
-function applicaScope(pool, scope) {
-  if (!scope || scope.tipo === "tutto") return pool;
-  const campo = scope.tipo === "stagione" ? "anno" : "squadra";
-  const valori = [...new Set(pool.map((p) => p.provenienza[campo]))];
-  if (!valori.length) return pool;
-  const scelto = casuale(valori);
-  const filtrato = pool.filter((p) => p.provenienza[campo] === scelto);
-  return filtrato.length ? filtrato : pool;
+// Squadre di una determinata annata (es. "1998-1999"), eventualmente
+// escludendo quella già proposta. Se l'annata non ha squadre utili si torna
+// l'elenco completo, così i bonus non restano mai a vuoto.
+function squadreDellAnnata(squadre, anno, esclusoId = null) {
+  const filtrate = squadre.filter((s) => s.anno === anno && s.id !== esclusoId);
+  return filtrate.length ? filtrate : squadre;
 }
 
 // Seleziona fino a 10 candidati con bande percentili (3 bassi / 5 medi / 2
@@ -199,24 +197,37 @@ function estraiDaSquadraCasuale(idsUsati, personeUsate, squadre, ruoliDettagliat
 // almeno uno slot esatto ancora libero in questa formazione — un giocatore
 // viene proposto SOLO in un ruolo che ha ancora posto esatto (mai un ruolo
 // già esaurito, anche se il suo reparto ha ancora spazio altrove).
-// Per "squadra"/"club" torna la rosa COMPLETA disponibile di una squadra
-// (ruoli misti, ordine alfabetico); per "tutto"/"stagione" un pool troppo
-// grande da mostrare intero, quindi 10 candidati a bande percentili.
+// Ambiti (scope):
+//  - "squadra" (default): rosa COMPLETA disponibile di una squadra a caso.
+//  - "squadra-stagione": rosa completa di un ALTRO club della STESSA annata
+//    (scope.anno), escludendo quello già proposto (scope.esclusoId).
+//  - "mix-stagione": 10 candidati a bande percentili presi da TUTTI i club di
+//    quella annata (scope.anno) — un "meglio di" trasversale della stagione.
 export function estraiCandidati(idsUsati, personeUsate = new Set(), squadre = SQUADRE, scope = { tipo: "squadra" }, ruoliEsauriti = null, ruoliDettagliatiAperti = null, preferisciForte = false) {
   // Rete di sicurezza: se il pool "esatto" è vuoto (rarissimo: nessuno slot
   // rimasto ha un giocatore disponibile che lo ricopre davvero), si ripiega
   // sulla compatibilità di reparto pur di non bloccare mai il draft.
   const conRete = (pool) => (pool.length ? pool : poolLiberoCompatibile(idsUsati, personeUsate, squadre, ruoliEsauriti));
 
-  if (scope?.tipo === "tutto") {
-    return { candidati: selezionaBande(conRete(poolLibero(idsUsati, personeUsate, squadre, ruoliDettagliatiAperti))) };
-  }
-  if (scope?.tipo === "stagione") {
-    const pool = applicaScope(poolLibero(idsUsati, personeUsate, squadre, ruoliDettagliatiAperti), scope);
-    return { candidati: selezionaBande(conRete(pool)) };
+  // Mix della stagione: giocatori di più club della stessa annata.
+  if (scope?.tipo === "mix-stagione") {
+    const dellAnnata = squadreDellAnnata(squadre, scope.anno);
+    const pool = poolLibero(idsUsati, personeUsate, dellAnnata, ruoliDettagliatiAperti);
+    return { candidati: selezionaBande(conRete(pool)), anno: scope.anno };
   }
 
-  // default ("squadra") e skip "club": rosa completa di una squadra sola.
+  // Altra squadra della stessa stagione: rosa completa di un altro club
+  // della stessa annata (se possibile), altrimenti di una squadra qualsiasi.
+  if (scope?.tipo === "squadra-stagione") {
+    const candidateSquadre = squadreDellAnnata(squadre, scope.anno, scope.esclusoId);
+    const trovata =
+      estraiDaSquadraCasuale(idsUsati, personeUsate, candidateSquadre, ruoliDettagliatiAperti) ||
+      estraiDaSquadraCasuale(idsUsati, personeUsate, squadre, ruoliDettagliatiAperti);
+    if (trovata) return { candidati: [...trovata.pool].sort(ordinaAlfabetico), squadra: trovata.squadra };
+    return { candidati: selezionaBande(conRete(poolLibero(idsUsati, personeUsate, squadre, ruoliDettagliatiAperti))) };
+  }
+
+  // default ("squadra"): rosa completa di una squadra sola.
   const trovata = estraiDaSquadraCasuale(idsUsati, personeUsate, squadre, ruoliDettagliatiAperti, preferisciForte);
   if (!trovata) {
     // rete di sicurezza: nessuna squadra ha abbastanza giocatori disponibili
